@@ -110,4 +110,42 @@ Singleton {
         readonly property real topStartRight: 30
         readonly property real topStartY: 14
     }
+
+    // ---- launcher (ref/16 frame 1, measured 1:1 at 2560x1440) -------------------
+    // Same width as the control center, so launcher <-> control center only morphs the height.
+    readonly property QtObject launcher: QtObject {
+        readonly property int width: 686
+        readonly property int headerHeight: 80     // search row; 1 px separator on its last line
+        readonly property real centerY: 41         // lens + text line
+        readonly property real lensX: 22
+        readonly property real lensSize: 20
+        readonly property real inputX: 60
+        readonly property real inputSize: 18
+        readonly property real modeSize: 15        // dim mode name at the right of the field
+        readonly property real inset: 20           // separator + rows, left and right
+        readonly property int listTop: 96
+        readonly property int padBottom: 22
+        readonly property int rowHeight: 62
+        readonly property int visibleRows: 6
+        readonly property real rowRadius: 10
+        readonly property real barX: 2             // selection bar inside the highlight
+        readonly property real barWidth: 3
+        readonly property real barHeight: 30
+        readonly property real tileX: 16           // icon tile behind every icon
+        readonly property real tileSize: 44
+        readonly property real tileRadius: 10
+        readonly property real iconSize: 28
+        readonly property real glyphSize: 22       // Lucide glyph when a row has no app icon
+        readonly property real textX: 74
+        readonly property real titleSize: 19
+        readonly property real subtitleSize: 15
+        readonly property real titleBaseline: 27   // from the row top
+        readonly property real subtitleBaseline: 47
+        readonly property int highlightMove: 160
+        readonly property int stagger: 22          // ms between rows while the panel opens
+        readonly property real revealShift: 10     // px rows rise while they fade in
+        readonly property color highlight: root.mix(root.island, root.text, 0.105)
+        readonly property color separator: root.mix(root.island, root.text, 0.1)
+        readonly property color tile: Qt.rgba(root.text.r, root.text.g, root.text.b, 0.065)
+    }
 }
