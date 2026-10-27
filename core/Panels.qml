@@ -5,6 +5,10 @@ import qs.panels
 
 // Panel registry: id -> component + kind. The island knows nothing else about
 // panels; each panel reports its own size/radius at runtime (panels/PanelBase.qml).
+// The registry also knows the largest size any panel can ask for (maxWidth/maxHeight):
+// every component is probed once at start (PanelBase.maxWidth/maxHeight), live panels
+// raise it further via report(). The island's layer surface is sized from it, so a
+// taller panel added later is never clipped.
 //
 //   kind "panel"    modal: focus grab + exclusive keyboard, Esc / click outside closes
 //   kind "overlay"  transient (OSD): no focus, auto-hides, outranks hover but not panels
@@ -40,6 +44,31 @@ Singleton {
     }
     function kind(id: string): string {
         return has(id) ? (entries[id].kind ?? "panel") : "";
+    }
+
+    // only ever grows; write through report()
+    property int maxWidth: 0
+    property int maxHeight: 0
+
+    function report(w: int, h: int): void {
+        if (w > maxWidth)
+            maxWidth = w;
+        if (h > maxHeight)
+            maxHeight = h;
+    }
+
+    Component.onCompleted: {
+        for (const id of ids) {
+            const probe = entries[id].component.createObject(null, {
+                "probe": true
+            });
+            if (!probe) {
+                console.warn(`luxshell: panel "${id}" failed to load`);
+                continue;
+            }
+            report(probe.maxWidth, probe.maxHeight);
+            probe.destroy();
+        }
     }
 
     Component {

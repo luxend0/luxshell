@@ -1,9 +1,12 @@
 import QtQuick
 import qs.config
 
-// The one animation of the shell: Theme curve, Theme duration unless overridden.
+// Secondary animation of the shell: Theme curve, Theme duration unless `ms` is set.
+// Set `ms`, not `duration`, so LUXSHELL_SLOWMO applies. The island morph itself
+// has its own per-axis timing (config/Motion.qml, island/Island.qml).
 NumberAnimation {
-    duration: Theme.duration
+    property int ms: Theme.duration
+    duration: Motion.ms(ms)
     easing.type: Easing.BezierSpline
     easing.bezierCurve: Theme.curve
 }

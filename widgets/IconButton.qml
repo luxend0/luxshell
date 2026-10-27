@@ -21,7 +21,7 @@ Item {
         opacity: area.containsMouse ? 1 : 0
         Behavior on opacity {
             Anim {
-                duration: Theme.fadeOut
+                ms: Theme.fadeOut
             }
         }
     }

@@ -4,8 +4,11 @@ import qs.services
 import qs.widgets
 
 // "All caught up" + bell, or the unread count with a dotted bell.
+// textOpacity: the label fades in after the bell while the island opens.
 Item {
     id: root
+
+    property real textOpacity: 1
 
     readonly property QtObject h: Theme.hover
 
@@ -16,6 +19,7 @@ Item {
         id: label
         anchors.verticalCenter: parent.verticalCenter
         text: Notifs.status
+        opacity: root.textOpacity
         font.pixelSize: root.h.notifSize
         font.weight: Font.Medium
     }

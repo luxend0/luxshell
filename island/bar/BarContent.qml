@@ -4,114 +4,140 @@ import qs.core
 import qs.services
 import qs.widgets
 
-// Content of the island when no panel is shown. One progress value p drives the
-// whole collapsed <-> hover morph: shared elements (workspaces, clock, signal,
-// volume) interpolate size and position, hover-only elements fade in late.
-// Positions are relative to the current island size, which animates with the
-// same curve and duration, so everything stays in lockstep without per-item
-// animations.
+// Content of the island when no panel is shown, ONE layout for collapsed and hover.
+// Shared elements (workspaces, clock, signal, volume) move and scale between their
+// collapsed and hover rest positions; hover-only elements fade in late.
+//
+// Driven by the island's content progress (Island.cxp/cyp/wyp, config/Motion.qml):
+//   pw  horizontal progress (positions, clock size)   ph  vertical progress (rows, sizes)
+//   pr  vertical progress of the workspace row (trails ph in both directions)
+// While opening, the content trails the shape; while closing it moves with it.
+// Each element follows its own lagged copy q = p^k (Motion.lag), so the elements
+// at the front of the motion lead (ref/14: signal before volume, inner capsule first).
+// Shared elements are placed relative to the island centre, independent of the
+// animated body width (the body clips); the hover-only top row rides the edges.
 Item {
     id: bar
 
-    property real p: 0
+    property real pw: 0
+    property real ph: 0
+    property real pr: 0
+    property real topAlpha: 0 // own animation in Island: late in, out at once
     property var screen: null
     readonly property bool holdOpen: tray.openMenus > 0
-    readonly property real reveal: Math.max(0, Math.min(1, (p - 0.45) / 0.55))
 
     readonly property QtObject c: Theme.collapsed
     readonly property QtObject h: Theme.hover
-    function mix(a: real, b: real): real {
-        return a + (b - a) * p;
+    readonly property var lag: Motion.lag
+    readonly property var reveal: Motion.reveal
+    readonly property real statusOpacity: mix(c.statusOpacity, h.statusOpacity, pw)
+
+    function mix(a: real, b: real, t: real): real {
+        return a + (b - a) * t;
     }
-    readonly property real padL: mix(c.padLeft, h.padLeft)
-    readonly property real padR: mix(c.padRight, h.padRight)
-    readonly property real lineY: mix(c.centerY, h.row2Y) // workspaces
+    // x for a point given relative to the island centre in both layouts
+    function cx(relC: real, relH: real, t: real): real {
+        return width / 2 + mix(relC, relH, t);
+    }
 
     // ---- left: workspaces (row 2 in hover) ---------------------------------
     Workspaces {
-        id: workspaces
-        p: bar.p
+        anchors.fill: parent
         screen: bar.screen
-        x: bar.padL
-        y: bar.lineY - height / 2
+        pw: bar.pw
+        ps: Motion.lagged(bar.pr, bar.lag.workspacesSize)
+        cy: bar.mix(bar.c.centerY, bar.h.row2Y, bar.pr)
     }
 
     // ---- centre: clock, date joins on hover (group stays centred) ----------
     MorphText {
         id: clock
-        readonly property real cx: bar.width / 2 - bar.p * (bar.h.dateGap + date.implicitWidth) / 2
-        readonly property real cy: bar.mix(bar.c.centerY, bar.h.clockY)
+        readonly property real cx: bar.cx(0, -(bar.h.dateGap + date.implicitWidth) / 2, bar.pw)
+        readonly property real cy: bar.mix(bar.c.centerY, bar.h.clockY, Motion.lagged(bar.ph, bar.lag.clockY))
+        readonly property real baseY: cy + visualCapHeight / 2
         text: Clock.time
-        size: bar.mix(bar.c.clockSize, bar.h.clockSize)
+        size: bar.mix(bar.c.clockSize, bar.h.clockSize, bar.pw)
         font.weight: Font.Medium
         x: cx - width / 2
         y: cy - anchorY
     }
     Txt {
         id: date
-        visible: bar.reveal > 0
-        opacity: bar.reveal
+        // shrinks with the clock, baseline on the clock's baseline
+        readonly property real sc: clock.size / bar.h.clockSize
+        visible: opacity > 0.001
+        opacity: Motion.smooth(bar.pw, bar.reveal.date)
         text: Clock.date
         color: Theme.textDim
         font.pixelSize: bar.h.dateSize
         font.weight: Font.Medium
-        x: clock.cx + clock.visualWidth / 2 + bar.h.dateGap
-        y: clock.cy + clock.visualCapHeight / 2 - baselineOffset
+        scale: sc
+        transformOrigin: Item.Left
+        x: clock.cx + clock.visualWidth / 2 + bar.h.dateGap * sc
+        y: clock.baseY - height / 2 - (baselineOffset - height / 2) * sc
     }
 
-    // ---- right: signal + volume (row 2 in hover, dimmed) --------------------
+    // ---- right: volume + signal (row 2 in hover, dimmed) --------------------
+    Icon {
+        id: volume
+        readonly property real rightX: bar.cx(bar.c.width / 2 - bar.c.padRight, bar.h.width / 2 - bar.h.padRight, Motion.lagged(bar.pw, bar.lag.volumeX))
+        name: Audio.icon
+        size: bar.mix(bar.c.volumeSize, bar.h.volumeSize, bar.ph)
+        color: Theme.text
+        opacity: bar.statusOpacity
+        x: rightX - width
+        y: bar.mix(bar.c.statusY, bar.h.statusY, Motion.lagged(bar.ph, bar.lag.volumeY)) - height / 2
+    }
+    SignalBars {
+        id: signal
+        // rest: right-aligned in front of the volume glyph
+        readonly property real relC: bar.c.width / 2 - bar.c.padRight - bar.c.volumeSize - bar.c.statusGap
+        readonly property real relH: bar.h.width / 2 - bar.h.padRight - bar.h.volumeSize - bar.h.statusGap
+        readonly property real cy: bar.mix(bar.c.statusY, bar.h.statusY, Motion.lagged(bar.ph, bar.lag.signalY))
+        p: bar.ph
+        opacity: bar.statusOpacity
+        x: bar.cx(relC, relH, Motion.lagged(bar.pw, bar.lag.signalX)) - width
+        y: cy - height / 2
+    }
+    // scroll over signal + volume = volume; the handler is the only writer to the sink
     Item {
-        id: status
-        readonly property real gap: bar.mix(bar.c.statusGap, bar.h.statusGap)
-        x: bar.width - bar.padR - width
-        y: bar.mix(bar.c.statusY, bar.h.statusY) - height / 2
-        width: signal.width + gap + volume.width
-        height: Math.max(signal.height, volume.height)
-        opacity: bar.mix(bar.c.statusOpacity, bar.h.statusOpacity)
-
-        SignalBars {
-            id: signal
-            p: bar.p
-            anchors.verticalCenter: parent.verticalCenter
-        }
-        Icon {
-            id: volume
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            name: Audio.icon
-            size: bar.mix(bar.c.volumeSize, bar.h.volumeSize)
-            color: Theme.text
-        }
-        // scroll = volume; the handler is the only writer to the sink
+        x: signal.x - 6
+        y: Math.min(signal.y, volume.y) - 6
+        width: volume.x + volume.width - x + 6
+        height: Math.max(signal.y + signal.height, volume.y + volume.height) - y + 6
         WheelHandler {
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
             onWheel: e => Audio.step(e.angleDelta.y > 0 ? 0.05 : -0.05)
         }
     }
 
-    // ---- hover only ---------------------------------------------------------
+    // ---- hover only: top row rides the island edges -------------------------
     WindowLabel {
-        visible: bar.reveal > 0
-        opacity: bar.reveal
-        x: bar.padL
-        y: bar.h.row1Y - height / 2
+        textOpacity: Motion.smooth(bar.pw, bar.reveal.topText)
+        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon)
+        visible: opacity > 0.001
+        x: bar.mix(bar.h.topStartLeft, bar.h.padLeft, bar.pw)
+        y: notif.cy - height / 2
     }
 
     NotifStatus {
         id: notif
-        visible: bar.reveal > 0
-        opacity: bar.reveal
-        x: bar.width - bar.padR - width
-        y: bar.h.row1Y - height / 2
+        readonly property real cy: bar.mix(bar.h.topStartY, bar.h.row1Y, Motion.lagged(bar.ph, bar.lag.topY))
+        textOpacity: Motion.smooth(bar.pw, bar.reveal.topText)
+        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon)
+        visible: opacity > 0.001
+        x: bar.width - bar.mix(bar.h.topStartRight, bar.h.padRight, bar.pw) - width
+        y: cy - height / 2
     }
 
+    // ---- hover only: extras, last in and first out ---------------------------
     Row {
         id: system
-        visible: bar.reveal > 0
-        opacity: bar.reveal
+        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.extras)
+        visible: opacity > 0.001
         spacing: 4
         x: notif.x - bar.h.systemGap - width
-        y: bar.h.row1Y - height / 2
+        y: notif.cy - height / 2
 
         IconButton {
             icon: "settings"
@@ -131,9 +157,9 @@ Item {
 
     TrayRow {
         id: tray
-        visible: bar.reveal > 0
-        opacity: bar.reveal
-        x: status.x - bar.h.trayGap - width
-        y: bar.h.statusY - height / 2
+        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.extras)
+        visible: opacity > 0.001
+        x: signal.x - bar.h.trayGap - width
+        y: signal.cy - height / 2
     }
 }

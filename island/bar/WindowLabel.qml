@@ -5,8 +5,11 @@ import qs.services
 import qs.widgets
 
 // App icon + title of the focused window; "Desktop" with a dot on an empty workspace.
+// textOpacity: the title fades in after the icon while the island opens.
 Item {
     id: root
+
+    property real textOpacity: 1
 
     readonly property QtObject h: Theme.hover
     readonly property string iconSource: Hypr.hasWindow ? Apps.iconFor(Hypr.appId) : ""
@@ -49,6 +52,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         width: Math.min(implicitWidth, root.h.titleMaxWidth)
         text: Hypr.hasWindow ? Hypr.title : "Desktop"
+        opacity: root.textOpacity
         elide: Text.ElideRight
         font.pixelSize: root.h.titleSize
         font.weight: Font.DemiBold

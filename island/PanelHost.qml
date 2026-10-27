@@ -1,12 +1,12 @@
 import QtQuick
 import qs.config
 import qs.core
-import qs.widgets
 
 // Loads registered panels into two alternating slots and cross-fades between
 // them, so panel -> panel morphs keep the old content visible while the new
-// one fades in. Loading is synchronous: a panel's reported size is known in
-// the same frame and the island starts its morph right away.
+// one fades in (timing: Motion.fadeIn/fadeInDelay/fadeOut). Loading is
+// synchronous: a panel's reported size is known in the same frame and the
+// island starts its morph right away.
 FocusScope {
     id: host
 
@@ -38,22 +38,50 @@ FocusScope {
 
         property string panelId: ""
         property bool shown: false
+        property real alpha: 0
 
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         focus: shown
-        opacity: shown ? 1 : 0
-        visible: opacity > 0
-        Behavior on opacity {
-            Anim {
-                duration: Theme.fadeIn
+        opacity: alpha
+        visible: alpha > 0.001
+        // in: after a short delay, while the body is already morphing; out: fast
+        onShownChanged: {
+            if (shown) {
+                fadeOut.stop();
+                fadeIn.restart();
+            } else {
+                fadeIn.stop();
+                fadeOut.restart();
             }
         }
-        onOpacityChanged: if (!shown && opacity === 0)
+        onAlphaChanged: if (!shown && alpha === 0)
             sourceComponent = null
         onLoaded: {
             item.panelId = panelId;
             item.active = Qt.binding(() => loader.shown);
+        }
+
+        SequentialAnimation {
+            id: fadeIn
+            PauseAnimation {
+                duration: Motion.ms(Motion.fadeInDelay)
+            }
+            NumberAnimation {
+                target: loader
+                property: "alpha"
+                to: 1
+                duration: Motion.ms(Motion.fadeIn)
+                easing.type: Easing.OutCubic
+            }
+        }
+        NumberAnimation {
+            id: fadeOut
+            target: loader
+            property: "alpha"
+            to: 0
+            duration: Motion.ms(Motion.fadeOut)
+            easing.type: Easing.OutCubic
         }
     }
 

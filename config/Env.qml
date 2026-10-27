@@ -11,6 +11,7 @@ import Quickshell
 //   LUXSHELL_FAKE_NOTIFS  fake unread count while the server is off
 //   LUXSHELL_CONFIG_DIR   settings directory (default $XDG_CONFIG_HOME/luxshell)
 //   LUXSHELL_FAKE_CLOCK   ISO date/time shown instead of the real clock (screenshots)
+//   LUXSHELL_SLOWMO       factor for every animation duration (10 = ten times slower, frame captures)
 Singleton {
     id: root
 
@@ -23,6 +24,7 @@ Singleton {
     readonly property bool notifs: get("LUXSHELL_NOTIFS") === "1"
     readonly property int fakeNotifs: parseInt(get("LUXSHELL_FAKE_NOTIFS")) || 0
     readonly property string fakeClock: get("LUXSHELL_FAKE_CLOCK")
+    readonly property real slowmo: Math.max(0.1, parseFloat(get("LUXSHELL_SLOWMO")) || 1)
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
         if (own !== "")

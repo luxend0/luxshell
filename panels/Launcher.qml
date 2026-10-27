@@ -13,11 +13,13 @@ PanelBase {
 
     readonly property int rowH: 64
     readonly property int headerH: 84
-    readonly property var results: Apps.search(search.text, 6)
+    readonly property int limit: 6
+    readonly property var results: probe ? [] : Apps.search(search.text, limit)
     property int selected: 0
 
     preferredWidth: 720
     preferredHeight: headerH + Math.max(1, results.length) * rowH + 20
+    maxHeight: headerH + limit * rowH + 20
 
     function focusDefault() {
         search.forceActiveFocus();

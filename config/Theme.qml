@@ -2,10 +2,11 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Single source for colours, type, motion and island geometry.
+// Single source for colours, type, secondary motion and island geometry.
 // Colours: semantic roles over the active palette (Themes.qml, choice in Settings).
 // Geometry: pixels at scale 1, measured 1:1 from ref/*.png (2560x1440).
-// Motion: ONE curve for every animation in the shell, only durations differ.
+// Motion: the island morph and its content fades live in Motion.qml (fitted to the
+// video); everything else uses ONE curve here (widgets/Anim), only durations differ.
 Singleton {
     id: root
 
@@ -34,16 +35,16 @@ Singleton {
     // ---- type ------------------------------------------------------------
     readonly property string fontFamily: "Inter"
 
-    // ---- motion ----------------------------------------------------------
-    // easeOutCubic; fitted to the hover-close frames of ref/14 (18/37/66 % after 1/2/4 frames)
-    readonly property var curve: [0.33, 1.0, 0.68, 1.0, 1.0, 1.0]
-    readonly property int duration: 450      // island size / morph
-    readonly property int fadeIn: 260        // content appearing
-    readonly property int fadeOut: 140       // content leaving
+    // ---- secondary motion (widgets/Anim) ----------------------------------
+    readonly property var curve: [0.33, 1.0, 0.68, 1.0, 1.0, 1.0] // easeOutCubic
+    readonly property int duration: 450
+    readonly property int fadeIn: 260        // small state changes (active workspace)
+    readonly property int fadeOut: 140       // hover discs
     readonly property int hoverHold: 160     // pointer may leave this long before collapsing
 
     // ---- island ----------------------------------------------------------
-    readonly property int windowHeight: 1000 // layer surface height; panels must fit
+    // the layer surface is sized from the hover size and the largest panel
+    // (Panels.maxWidth/maxHeight), see island/IslandWindow.qml
     readonly property int earRadius: 8       // concave fillets where the island meets the screen edge
     readonly property int panelRadius: 32
 
@@ -103,5 +104,10 @@ Singleton {
         readonly property real trayGap: 18
         readonly property real systemIconSize: 18
         readonly property real systemGap: 22
+        // where the hover-only top row starts while the island is still collapsed
+        // (it rides the island edge, ref/03: icons sit close to the corners mid-morph)
+        readonly property real topStartLeft: 24
+        readonly property real topStartRight: 30
+        readonly property real topStartY: 14
     }
 }

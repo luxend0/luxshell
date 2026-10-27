@@ -5,21 +5,19 @@ import Quickshell.Hyprland
 import qs.config
 import qs.core
 
-// One layer surface per screen. The surface is tall enough for any panel but
-// transparent; the input mask follows the island body, the exclusive zone is
-// the collapsed height only.
+// One layer surface per screen, anchored to the top edge only (centred by the
+// compositor) and only as large as needed: hover size or the largest registered
+// panel (Panels.maxWidth/maxHeight), plus the ears. Transparent; the input mask
+// follows the island body, the exclusive zone is the collapsed height only.
 PanelWindow {
     id: win
 
     required property var modelData
 
     screen: modelData
-    anchors {
-        top: true
-        left: true
-        right: true
-    }
-    implicitHeight: Math.min(modelData.height, Theme.windowHeight)
+    anchors.top: true
+    implicitWidth: Math.min(modelData.width, Math.max(Theme.hover.width, Panels.maxWidth) + 2 * Theme.earRadius)
+    implicitHeight: Math.min(modelData.height, Math.max(Theme.hover.height, Panels.maxHeight) + 2)
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: Theme.collapsed.height
     color: "transparent"
