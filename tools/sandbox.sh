@@ -4,6 +4,8 @@
 #
 #   sandbox.sh start <name>                 nested Hyprland starten
 #   sandbox.sh run   <name> <shell.qml|dir> [KEY=VAL ...]   qs darin starten (ersetzt vorherigen Lauf)
+#                    LUXSB_DBUS=1 als KEY=VAL: eigener Session-Bus (fuer NotificationServer-Tests);
+#                    Adresse danach in $XDG_RUNTIME_DIR/luxsandbox/<name>.dbus (fuer notify-send)
 #   sandbox.sh shot  <name> <out.png> [WxH+X+Y]             Screenshot (optional Crop)
 #   sandbox.sh log   <name>                 qs-Log anzeigen
 #   sandbox.sh hypr  <name> <hyprctl-args>  hyprctl gegen die Sandbox
@@ -13,7 +15,7 @@ RT=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
 DIR=$RT/luxsandbox
 mkdir -p "$DIR"
 cmd=${1:-}; name=${2:-}
-[ -n "$cmd" ] && [ -n "$name" ] || { sed -n 2,11p "$0"; exit 1; }
+[ -n "$cmd" ] && [ -n "$name" ] || { sed -n 2,13p "$0"; exit 1; }
 base=$DIR/$name
 here=$(cd "$(dirname "$0")" && pwd)
 
@@ -58,7 +60,11 @@ run)
     [ -d "$target" ] && target=$target/shell.qml
     [ -f "$base.qs.pid" ] && kill "$(cat "$base.qs.pid")" 2>/dev/null || true
     sleep 0.3
-    env "$@" setsid qs -p "$target" >"$base.qs.log" 2>&1 &
+    if printf '%s\n' "$@" | grep -qx 'LUXSB_DBUS=1'; then
+        env "$@" setsid dbus-run-session -- sh -c 'echo "$DBUS_SESSION_BUS_ADDRESS" >"$1"; exec qs -p "$2"' _ "$base.dbus" "$target" >"$base.qs.log" 2>&1 &
+    else
+        env "$@" setsid qs -p "$target" >"$base.qs.log" 2>&1 &
+    fi
     echo $! >"$base.qs.pid"
     sleep 2.5
     grep -E "ERROR|error|TypeError|ReferenceError|is not|Cannot" "$base.qs.log" | grep -v Papirus | head -20 || true
@@ -78,5 +84,5 @@ stop)
     rm -f "$base".*
     echo "gestoppt"
     ;;
-*) sed -n 2,11p "$0"; exit 1 ;;
+*) sed -n 2,13p "$0"; exit 1 ;;
 esac
