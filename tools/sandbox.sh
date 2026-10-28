@@ -64,7 +64,8 @@ run)
     load
     target=${3:?shell.qml oder Ordner angeben}; shift 3
     [ -d "$target" ] && target=$target/shell.qml
-    [ -f "$base.qs.pid" ] && kill "$(cat "$base.qs.pid")" 2>/dev/null || true
+    # setsid macht den Prozess zum Gruppenleiter: ganze Gruppe beenden (sonst bleibt qs unter dbus-run-session verwaist)
+    [ -f "$base.qs.pid" ] && kill -- -"$(cat "$base.qs.pid")" 2>/dev/null || true
     sleep 0.3
     if printf '%s\n' "$@" | grep -qx 'LUXSB_DBUS=1'; then
         env "$@" setsid dbus-run-session -- sh -c 'echo "$DBUS_SESSION_BUS_ADDRESS" >"$1"; exec qs -p "$2"' _ "$base.dbus" "$target" >"$base.qs.log" 2>&1 &
@@ -85,7 +86,7 @@ shot)
 log)  cat "$base.qs.log" ;;
 hypr) load; shift 2; hyprctl "$@" ;;
 stop)
-    [ -f "$base.qs.pid" ] && kill "$(cat "$base.qs.pid")" 2>/dev/null || true
+    [ -f "$base.qs.pid" ] && kill -- -"$(cat "$base.qs.pid")" 2>/dev/null || true
     [ -f "$base.pid" ] && kill "$(cat "$base.pid")" 2>/dev/null || true
     rm -f "$base".*
     echo "gestoppt"
