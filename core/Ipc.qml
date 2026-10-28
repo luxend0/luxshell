@@ -46,7 +46,8 @@ IpcHandler {
             "window": Hypr.hasWindow ? `${Hypr.appId}: ${Hypr.title}` : "",
             "net": `${Net.kind} ${Net.bars}`,
             "volume": Audio.ready ? Math.round(Audio.volume * 100) : -1,
-            "notifications": Notifs.count
+            "notifications": Notifs.count,
+            "media": Media.active ? `${Media.active.identity} ${Media.active.isPlaying ? "playing" : "paused"}: ${Media.active.trackTitle} @ ${Math.round(Media.active.position)}/${Math.round(Media.active.length)} s, vol ${Media.active.volumeSupported ? Math.round(Media.active.volume * 100) : "-"}` : ""
         });
     }
 }

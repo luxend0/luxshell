@@ -63,6 +63,11 @@ Singleton {
             "overview": {
                 "component": overview,
                 "kind": "panel"
+            },
+            // now playing (services/Media), opened from the media chip of the hover island
+            "media": {
+                "component": mediaPanel,
+                "kind": "panel"
             }
         })
 
@@ -140,5 +145,9 @@ Singleton {
     Component {
         id: overview
         Overview {}
+    }
+    Component {
+        id: mediaPanel
+        MediaPanel {}
     }
 }

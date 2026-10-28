@@ -17,6 +17,8 @@ import Quickshell
 //   LUXSHELL_FAKE_BT      1 = demo Bluetooth devices, scanning = demo that never finds a nearby device
 //   LUXSHELL_FAKE_WIFI=1  demo Wi-Fi adapter + networks (services/Networks)
 //   LUXSHELL_FAKE_MIXER=1 demo app playback streams (services/Mixer)
+//   LUXSHELL_FAKE_MEDIA   1 = two demo players (Spotify playing, Firefox paused), single = one,
+//                         paused = Spotify paused; no MPRIS at all (services/Media)
 Singleton {
     id: root
 
@@ -29,6 +31,7 @@ Singleton {
     readonly property bool notifs: get("LUXSHELL_NOTIFS") === "1"
     readonly property int fakeNotifs: parseInt(get("LUXSHELL_FAKE_NOTIFS")) || 0
     readonly property string fakeClock: get("LUXSHELL_FAKE_CLOCK")
+    readonly property string fakeMedia: get("LUXSHELL_FAKE_MEDIA")
     readonly property real slowmo: Math.max(0.1, parseFloat(get("LUXSHELL_SLOWMO")) || 1)
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
