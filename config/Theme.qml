@@ -148,4 +148,105 @@ Singleton {
         readonly property color separator: root.mix(root.island, root.text, 0.1)
         readonly property color tile: Qt.rgba(root.text.r, root.text.g, root.text.b, 0.065)
     }
+
+    // ---- control center (ref/08, ref/09, ref/09c; measured 1:1 at 2560x1440) ----------
+    // Main page: panel 686x686, cards 648 wide. Sub pages (network, Bluetooth, sound,
+    // display) are sheets over the dimmed main page, morphing out of the control
+    // that opened them (panels/ControlCenter.qml).
+    readonly property QtObject cc: QtObject {
+        readonly property int width: 686
+        readonly property int height: 686
+        readonly property int radius: 38         // panel bottom corners
+        readonly property int pad: 19            // panel edge -> cards, all four sides
+        readonly property int gapX: 14           // tile | tile | round
+        readonly property int gapY: 15           // between rows / cards
+        readonly property int row: 80            // tile, round button, slider card height
+        readonly property int tileWidth: 270     // row 1: Wi-Fi | Focus | lock
+        readonly property int wideTile: 317      // row 2: Bluetooth | Game Mode share the full width
+        readonly property int disc: 56           // icon disc inside a tile, centred in an 80 square
+        readonly property int textX: 84          // tile left -> title / subtitle
+        readonly property int titleY: 30         // cap centres inside a tile
+        readonly property int subY: 51
+        readonly property int titleSize: 19
+        readonly property int subSize: 15
+        readonly property int iconSize: 20
+        readonly property int cardRadius: 28
+        readonly property int labelX: 20         // "Sound", "Display", "Notifications"
+        readonly property int labelY: 20
+        readonly property int labelSize: 17
+        readonly property int captionSize: 15    // "Notifications"
+        readonly property int bodySize: 17       // "No notifications"
+        readonly property int trackX: 15
+        readonly property int trackY: 37
+        readonly property int trackHeight: 32
+        readonly property int trackIconX: 26     // icon centre from the track's left end
+        readonly property int chip: 32           // chevron disc, top right of a slider card
+        readonly property int chipY: 3
+        readonly property color stroke: root.mix(root.surface, root.surfaceHigh, 0.3)   // 1px card outline
+        readonly property color hover: root.mix(root.surface, root.surfaceHigh, 0.28)
+        readonly property color track: Qt.darker(root.surface, 2.2)                      // empty slider track
+        readonly property color chipColor: root.mix(root.surface, root.surfaceHigh, 0.67)
+
+        // sheet (ref/09 + ref/09c): coordinates relative to the sheet, sizes in px
+        readonly property QtObject sheet: QtObject {
+            readonly property int inset: 29          // panel edge -> sheet, left and right
+            readonly property int radius: 30
+            readonly property int maxHeight: 628     // panel height - 2 * inset; taller content scrolls
+            readonly property real dim: 0.55         // black over the main page while a sheet is open
+            readonly property int headerHeight: 75   // header block (back, title, switch)
+            readonly property real headerY: 44       // back disc, title and switch centre
+            readonly property int backX: 20
+            readonly property int backSize: 34
+            readonly property int titleX: 70
+            readonly property int titleSize: 22
+            readonly property int switchWidth: 58
+            readonly property int switchHeight: 30
+            readonly property int switchRight: 19
+            readonly property int knob: 24
+            readonly property int captionX: 21
+            readonly property real captionY: 26      // section top -> caption cap centre
+            readonly property int captionGap: 52     // section top -> first row
+            readonly property int captionSize: 15
+            readonly property int statusRight: 23    // "• Scanning" right edge -> sheet edge
+            readonly property int statusSize: 15
+            readonly property int dot: 7
+            readonly property int rowX: 20
+            readonly property int rowHeight: 65
+            readonly property int rowGap: 6
+            readonly property int rowRadius: 16
+            readonly property int discX: 10
+            readonly property int disc: 44
+            readonly property int discIcon: 18
+            readonly property int nameX: 71
+            readonly property real nameY: 22
+            readonly property int nameSize: 18
+            readonly property int subX: 70
+            readonly property real subY: 42.5
+            readonly property int subSize: 15
+            readonly property int pillHeight: 36
+            readonly property int pillRight: 8
+            readonly property real pillPad: 17.5
+            readonly property int pillSize: 15
+            readonly property int hintX: 20
+            readonly property int hintHeight: 27
+            readonly property real hintY: 10.5
+            readonly property int hintSize: 17
+            readonly property int padBottom: 17
+            readonly property int sliderRow: 78      // label line + track (sound, apps, displays)
+            // open: dim leads, the sheet grows out of its tile; close mirrors it
+            readonly property int dimMs: 300
+            readonly property int openDelay: 30
+            readonly property int openMs: 340
+            readonly property int closeMs: 260
+            readonly property int resizeMs: 240
+            readonly property color rowColor: root.mix(root.surface, root.surfaceHigh, 0.625)      // #1a1a1a
+            readonly property color rowHover: root.mix(root.surface, root.surfaceHigh, 0.8)
+            readonly property color discColor: root.mix(root.surfaceHigh, root.text, 0.065)       // #303030
+            readonly property color pillColor: root.mix(root.surfaceHigh, root.text, 0.03)        // #292929
+            readonly property color captionColor: root.mix(root.textDim, root.surface, 0.3)        // "Saved", "Nearby"
+            readonly property color subColor: root.mix(root.textDim, root.surface, 0.27)           // "Saved" under a name
+            readonly property color hintColor: root.mix(root.textDim, root.surface, 0.13)          // "Looking for devices..."
+            readonly property color textColor: root.mix(root.text, root.surface, 0.12)             // title, names (video: ~#d0d0d0)
+        }
+    }
 }

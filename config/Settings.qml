@@ -14,6 +14,9 @@ Singleton {
     // read-only mirrors; change via set()
     readonly property string theme: adapter.theme
     readonly property string accent: adapter.accent
+    readonly property bool dnd: adapter.dnd
+    readonly property bool gameMode: adapter.gameMode
+    readonly property string gameModeSaved: adapter.gameModeSaved
 
     function set(key: string, value: var): bool {
         if (adapter[key] === undefined) {
@@ -46,6 +49,9 @@ Singleton {
             id: adapter
             property string theme: "noir"
             property string accent: "" // "" = theme accent, else #rrggbb
+            property bool dnd: false // Focus / do not disturb (control center); notification popups read it
+            property bool gameMode: false // services/GameMode is on
+            property string gameModeSaved: "" // Hyprland values game mode replaced, JSON {option: value}
         }
     }
 }

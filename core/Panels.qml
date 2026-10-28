@@ -24,6 +24,10 @@ Singleton {
                 "component": controlCenter,
                 "kind": "panel"
             },
+            "bluetooth": {
+                "component": controlCenterBluetooth,
+                "kind": "panel"
+            },
             "launcher": {
                 "component": launcher,
                 "kind": "panel"
@@ -74,6 +78,12 @@ Singleton {
     Component {
         id: controlCenter
         ControlCenter {}
+    }
+    Component {
+        id: controlCenterBluetooth // control center opened on its Bluetooth page
+        ControlCenter {
+            startPage: "bluetooth"
+        }
     }
     Component {
         id: launcher
