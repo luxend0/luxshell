@@ -10,6 +10,7 @@ Rectangle {
     readonly property QtObject g: Theme.settings
     property string text: ""
     property string placeholder: ""
+    property string family: Theme.fontFamily // Theme.monoFamily for hex / code fields
     property var valid: t => true
     property var host: null           // SettingsWindow controller (focus back to the window)
     property int flatIndex: -1
@@ -51,7 +52,7 @@ Rectangle {
         selectionColor: Theme.surfaceHigh
         selectedTextColor: Theme.text
         selectByMouse: true
-        font.family: Theme.fontFamily
+        font.family: field.family
         font.pixelSize: Math.round(field.g.textSize * Theme.fontScale)
         cursorDelegate: Rectangle {
             width: 2

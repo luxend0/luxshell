@@ -17,8 +17,12 @@ import qs.island
 import qs.background
 import qs.lock
 import qs.apps.settings
+import qs.services
 
 ShellRoot {
+    // opt-in integrations (Settings > Integrations: kitty/GTK include lines, Hyprland look + blur) start with the shell
+    readonly property var integrations: [AppThemes, HyprLook]
+
     Variants {
         model: Quickshell.screens
 

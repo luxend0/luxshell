@@ -2,7 +2,7 @@ import QtQuick
 import qs.config
 import qs.core
 
-// Motion: interface scale, animation speed, preview. Keys: motion* (animationSpeed, uiScale exist).
+// Motion: animation speed, preview. Keys: motion* (animationSpeed exists; the interface scale moved to Appearance).
 SettingsPage {
     id: page
 
@@ -26,17 +26,6 @@ SettingsPage {
         {
             "title": "",
             "options": [
-                {
-                    "id": "uiScale",
-                    "kind": "slider",
-                    "key": "uiScale",
-                    "label": "Interface scale (restart)",
-                    "keywords": "size scale zoom bigger smaller dpi interface",
-                    "min": 0.6,
-                    "max": 1.2,
-                    "step": 0.05,
-                    "format": v => `${Math.round(v * 100)} %`
-                },
                 {
                     "id": "animationSpeed",
                     "kind": "slider",

@@ -19,6 +19,7 @@ Singleton {
         Media {},
         ClockDate {},
         Appearance {},
+        ThemeEditor {},
         Wallpaper {},
         Motion {},
         Launcher {},

@@ -453,6 +453,7 @@ Item {
             flatIndex: row.flatIndex
             text: row.opt.value()
             placeholder: row.opt.placeholder ?? ""
+            family: row.opt.mono ? Theme.monoFamily : Theme.fontFamily
             valid: row.opt.valid
             enabled: row.active
             onApplied: t => row.opt.apply(t)

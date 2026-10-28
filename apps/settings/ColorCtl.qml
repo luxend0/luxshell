@@ -37,6 +37,7 @@ Rectangle {
         width: parent.width - x - 8
         elide: Text.ElideRight
         text: root.value === "" ? root.emptyLabel : root.value.toUpperCase()
+        font.family: root.value === "" ? Theme.fontFamily : Theme.monoFamily
         color: root.value === "" ? root.g.value : root.g.label
     }
 }

@@ -100,12 +100,19 @@ Singleton {
         "swatches": ["#bdbdbd", "#a3a3a3", "#8c8c8c", "#737373", "#5c5c5c", "#d9d9d9"]
     })
 
-    readonly property var palettes: Object.assign({}, fixed, {
+    // custom themes (config/CustomThemes: ~/.config/luxshell/themes/*.json) join the
+    // built-in ones; their ids never clash with a built-in name
+    readonly property var palettes: Object.assign({}, CustomThemes.themes, fixed, {
         "wallpaper": derived ?? wallpaperFallback
     })
 
-    // picker order: the derived theme first, then A-Z (18 themes, nord = 14/18 like ref/05)
-    readonly property var names: ["wallpaper", ...Object.keys(fixed).sort()]
+    // picker order: the derived theme first, then A-Z (18 built-in themes, nord = 14/18
+    // like ref/05; custom themes sort in between)
+    readonly property var names: ["wallpaper", ...[...Object.keys(fixed), ...CustomThemes.ids].sort()]
+
+    function isCustom(name: string): bool {
+        return CustomThemes.isCustom(name);
+    }
 
     function resolve(name: string): string {
         const n = preview !== "" && name === Settings.theme ? preview : name;

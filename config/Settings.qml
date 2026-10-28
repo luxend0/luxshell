@@ -54,7 +54,7 @@ Singleton {
     property string clockFormat: "24h" // "24h" | "12h" | "12h-ampm" (services/Clock)
     property string dateFormat: "ddd, MMM d" // Qt date format of the hover date (services/Clock)
     property string fontFamily: "Inter" // Theme.fontFamily, every text of the shell
-    property int fontSize: 15 // px; Theme.fontScale = fontSize / 15 (settings app text)
+    property int fontSize: 15 // px; Theme.fontScale = fontSize / 15 * lookFontScale (settings app text)
     property real animationSpeed: 1 // divides every animation duration (config/Motion ms())
     property real uiScale: 0.85 // whole shell, applied at start by tools/run.sh (QT_SCALE_FACTOR); 0.85 = video size on a 27" QHD at luxend's 31.5" (93 PPI)
     property string terminal: "kitty" // launcher "> cmd" and Terminal=true apps (services/Apps)
@@ -67,6 +67,17 @@ Singleton {
     // ---- island* : Bar & Island (layout, size, workspaces, click/scroll) ----
 
     // ---- look* : Appearance (colours, font, radius, transparency, shadow, border, scale) ----
+    property real lookRadiusScale: 1 // corner radius factor: island + panels (island/IslandShape) and cards (Theme.rad)
+    property bool lookEars: true // concave fillets where the island meets the screen edge (video)
+    property bool lookBorder: false // outline around the island and panels
+    property real lookBorderWidth: 1.5 // px
+    property string lookBorderColor: "" // "" = theme (text over the island, 20 %), else #rrggbb
+    property bool lookShadow: false // drop shadow under the island and panels
+    property real lookShadowStrength: 0.5 // 0..1: blur, opacity and offset of the shadow
+    property real lookIslandOpacity: 1 // island fill, collapsed + hover (1 = solid like the video)
+    property real lookPanelOpacity: 1 // island fill while a panel or overlay is shown
+    property real lookFontScale: 1 // text size factor of the whole shell (Theme.tx: island, panels, OSD, lock; settings app via Theme.fontScale)
+    property string lookMonoFont: "" // monospace text (launcher command + calculator line, hex fields); "" = the interface font
 
     // ---- motion* : Motion (animations, hover delays) ----
 
@@ -85,6 +96,18 @@ Singleton {
     // ---- keys* : Keybinds (outside luxshell, opt-in, default off) ----
 
     // ---- integration* : apps theme, Hyprland look (outside luxshell, opt-in, default off) ----
+    property bool integrationKitty: false // marked include line for <cache>/kitty-theme.conf in kitty.conf (services/AppThemes)
+    property bool integrationGtk: false // marked @import line for <cache>/gtk.css in gtk-3.0 + gtk-4.0 gtk.css
+    property bool integrationHypr: false // Hyprland look via hyprctl eval (services/HyprLook); previous values restored when off
+    property bool integrationHyprBorder: true // window border: active = accent, inactive = theme
+    property int integrationHyprBorderSize: 2 // px
+    property bool integrationHyprGaps: true
+    property int integrationHyprGapsIn: 5 // px between windows
+    property int integrationHyprGapsOut: 10 // px to the screen edge
+    property bool integrationHyprRounding: true
+    property int integrationHyprRadius: 12 // px window rounding at corner radius factor 1 (follows lookRadiusScale)
+    property bool integrationBlur: false // Hyprland layer rule: blur behind the island while it is translucent
+    property string integrationHyprSaved: "" // Hyprland values the integration replaced, JSON {option: value} (runtime state)
 
     // ==== END OF KEYS ======================================================================
 
@@ -244,7 +267,7 @@ Singleton {
     // properties of this object that are not keys (besides "_"-prefixed ones and functions)
     readonly property var _internal: ["objectName", "reloadableId", "children", "path", "ready"]
     // runtime state, not preferences: never exported, imported or reset by resetAll()
-    readonly property var _state: ["gameMode", "gameModeSaved"]
+    readonly property var _state: ["gameMode", "gameModeSaved", "integrationHyprSaved"]
     // renamed keys { "oldKey": "newKey" }: applied when the file is read or imported
     readonly property var _renamed: ({})
 
