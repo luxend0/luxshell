@@ -10,6 +10,9 @@ Singleton {
     id: root
 
     readonly property string path: Env.configDir + "/settings.json"
+    // true once the file was read (or found missing): consumers that must see the saved
+    // values first (Panels' size probes, theme) wait for it
+    property bool ready: false
 
     // read-only mirrors; change via set()
     readonly property string theme: adapter.theme
@@ -61,6 +64,8 @@ Singleton {
         watchChanges: true
         printErrors: false
         onFileChanged: reload()
+        onLoaded: root.ready = true
+        onLoadFailed: root.ready = true
         // a file created by our first save is not watched yet; reloading arms the watch
         onSaved: if (!loaded)
             reload()

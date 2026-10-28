@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import qs.config
 import Quickshell
 import qs.panels
 import qs.services
@@ -102,7 +103,13 @@ Singleton {
             maxHeight = h;
     }
 
-    Component.onCompleted: {
+    // Probe only after Settings is read: probing with the default theme and then switching
+    // to the saved one re-ran bindings of already destroyed probes (TypeErrors at start).
+    property bool probed: false
+    function probeAll(): void {
+        if (probed)
+            return;
+        probed = true;
         for (const id of ids) {
             if (!entries[id].component)
                 continue; // windows have no island size
@@ -120,6 +127,16 @@ Singleton {
         // them once so they live from the start, after the registry itself is complete
         void Activities.current;
         void Notifs.count;
+    }
+
+    Component.onCompleted: if (Settings.ready)
+        probeAll()
+    Connections {
+        target: Settings
+        function onReadyChanged() {
+            if (Settings.ready)
+                Qt.callLater(root.probeAll);
+        }
     }
 
     Component {
