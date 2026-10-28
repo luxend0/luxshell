@@ -28,8 +28,14 @@ load() {
 case $cmd in
 start)
     [ -f "$base.env" ] && kill -0 "$(cat "$base.pid")" 2>/dev/null && { echo "laeuft schon"; exit 0; }
+    # Schutz: am 2026-10-27 crashte das echte Hyprland (Assert in Dwindle newTarget), weil ein
+    # Sandbox-Fenster gemappt wurde, waehrend DP-3 im Energiesparen als getrennt galt. Deshalb nur
+    # starten, wenn alle Monitore an sind, und das Fenster floatend parken (kein Tiling-Pfad).
+    if ! hyprctl monitors -j | jq -e 'length > 0 and all(.[]; .dpmsStatus == true and .disabled == false)' >/dev/null; then
+        echo "kein aktiver Monitor (DPMS aus?) - Sandbox wird nicht gestartet" >&2; exit 2
+    fi
     # Window-Rule im echten Hyprland (idempotent)
-    hyprctl eval 'hl.window_rule({ name = "luxshell-sandbox", match = { class = "aquamarine" }, workspace = "special:luxsandbox silent" })' >/dev/null
+    hyprctl eval 'hl.window_rule({ name = "luxshell-sandbox", match = { class = "aquamarine" }, float = true, workspace = "special:luxsandbox silent" })' >/dev/null
     exec 9>"$DIR/.lock"; flock 9
     ls "$RT/hypr" >"$base.before"
     ls "$RT" | grep -E '^wayland-[0-9]+$' >"$base.wlbefore" || true
