@@ -96,6 +96,11 @@ Singleton {
             "ipc": "luxshell lock"
         },
         {
+            "id": "power",
+            "label": "Power menu",
+            "ipc": "luxshell toggle power"
+        },
+        {
             "id": "focus",
             "label": "Focus on / off",
             "ipc": "focus toggle"
