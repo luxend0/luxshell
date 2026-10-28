@@ -24,7 +24,7 @@ PanelWindow {
 
     WlrLayershell.namespace: "luxshell"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.keyboardFocus: island.grabs ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: island.grabs ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     mask: Region {
         item: island.body
@@ -38,6 +38,9 @@ PanelWindow {
 
     // click outside a modal panel closes it. The grab is armed a moment after the
     // surface took keyboard focus; armed in the same frame Hyprland clears it at once.
+    // Keyboard focus must be OnDemand, not Exclusive: with Exclusive Hyprland never clears
+    // the grab on an outside click (tested 2026-10-28 with a virtual pointer); the active
+    // grab still hands the panel the keyboard, so typing in the launcher works.
     HyprlandFocusGrab {
         id: grab
         windows: [win]
