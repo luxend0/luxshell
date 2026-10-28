@@ -33,7 +33,8 @@ Item {
         id: hint
         x: Math.round((root.width - width) / 2)
         y: Math.round(root.height - root.g.hintBaseline - baselineOffset)
-        text: "Press Any Key to Enter Password"
+        text: Settings.lockHint // Lock Screen page; "" = no hint line
+        visible: text !== ""
         color: root.g.fg(root.g.hintAlpha)
         font.family: Theme.fontFamily
         font.pixelSize: root.g.hintSize

@@ -104,6 +104,7 @@ WlSessionLockSurface {
 
             Text {
                 id: date
+                visible: Settings.lockDate // Lock Screen page
                 x: Math.round((parent.width - width) / 2)
                 y: Math.round(surface.g.dateBaseline - baselineOffset)
                 text: Clock.now.toLocaleDateString(Clock.locale, "dddd, MMMM d")
@@ -118,7 +119,8 @@ WlSessionLockSurface {
                 id: time
                 x: Math.round((parent.width - width) / 2)
                 y: Math.round(surface.g.clockBaseline - baselineOffset)
-                text: Clock.time
+                // Lock Screen page: own format, "" = the island's (Clock & Date page)
+                text: Clock.formatTime(Clock.now, Settings.lockClockFormat !== "" ? Settings.lockClockFormat : Settings.clockFormat)
                 color: surface.g.fg(surface.g.clockAlpha)
                 font.family: surface.g.family
                 font.pixelSize: surface.g.clockSize

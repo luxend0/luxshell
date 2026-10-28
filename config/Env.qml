@@ -28,6 +28,11 @@ import Quickshell
 //   LUXSHELL_INTEGRATION_ROOT  home directory the kitty / GTK integrations edit instead of $HOME
 //                         (<root>/.config/kitty/kitty.conf, <root>/.config/gtk-{3,4}.0/gtk.css;
 //                         services/AppThemes). With LUXSHELL_DRYRUN=1 they edit nothing unless it is set.
+//   LUXSHELL_KEYS_FILE    where services/Keybinds writes the generated Hyprland binds (default
+//                         $XDG_CONFIG_HOME/hypr/luxos/luxshell-keys.lua); with LUXSHELL_DRYRUN=1 the
+//                         default path is never written, only a file named here
+//   LUXSHELL_SOUND_TARGET PipeWire sink for the notification sound (pw-play --target); plays even
+//                         with LUXSHELL_DRYRUN=1 (tests on a null sink), services/Notifs
 Singleton {
     id: root
 

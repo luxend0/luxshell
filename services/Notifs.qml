@@ -29,6 +29,13 @@ import qs.core
 // the peek (paused; the notification center consumes it, its list shows everything),
 // an activity OSD preempts it
 // (the peek comes back for its remaining time).
+//
+// Behaviour settings (Notifications page): notifPeek (off: no peeks but critical ones and
+// "always" apps), notifSound + notifSoundFile (pw-play through Exec: LUXSHELL_DRYRUN only
+// logs; LUXSHELL_SOUND_TARGET=<sink> plays on that sink even in a dry run, for tests on a
+// null sink), notifRules per app (ruleFor: mute = no peek, no sound | nopeek | always =
+// peeks and sounds through Focus | nostore = peeks, never kept), notifHistoryLimit
+// (oldest dismissed first). Focus can follow a schedule (services/Focus).
 Singleton {
     id: root
 
@@ -42,6 +49,8 @@ Singleton {
     readonly property int count: live ? entries.length : Env.fakeNotifs
     readonly property int unread: entries.filter(e => !e.seen).length
     readonly property string status: count === 0 ? (Settings.dnd ? "Focus on" : "All caught up") : count === 1 ? "1 notification" : `${count} notifications`
+    // the focus schedule lives as long as the store (this binding creates the singleton)
+    readonly property bool focusScheduled: Focus.enabled
 
     readonly property var groups: {
         const map = {};
@@ -138,8 +147,33 @@ Singleton {
             "transient": n.transient,
             "resident": n.resident,
             "alive": true,
-            "seen": false
+            "seen": false,
+            "rule": "",
+            "nostore": false
         };
+    }
+
+    // ---- per-app rules (Settings.notifRules) ----------------------------------------------
+    // the first rule whose app name or desktop id equals the entry's app or group (any case)
+    function ruleFor(e: var): string {
+        const app = String(e.app ?? "").toLowerCase(), group = String(e.group ?? "").toLowerCase();
+        for (const r of Settings.notifRules ?? []) {
+            const names = [r.app, r.id].filter(x => !!x).map(x => String(x).toLowerCase());
+            if (names.includes(app) || names.includes(group))
+                return String(r.mode ?? "");
+        }
+        return "";
+    }
+    function withRule(e: var): var {
+        const rule = ruleFor(e);
+        return Object.assign(e, {
+            "rule": rule,
+            "nostore": rule === "nostore"
+        });
+    }
+    // shown, never kept: transient ones and apps with the "nostore" rule
+    function ephemeral(e: var): bool {
+        return !!e && (e.transient || e.nostore);
     }
 
     function replaceEntry(key: int, fn: var): void {
@@ -152,7 +186,7 @@ Singleton {
         n.tracked = true;
         const key = nextKey++;
         objs[key] = n;
-        const e = makeEntry(n, key, null);
+        const e = withRule(makeEntry(n, key, null));
         n.closed.connect(reason => root.closed(key, reason));
         // replaces_id: the server updates the same object; re-read it and peek again
         const changed = () => root.changed(key);
@@ -160,7 +194,8 @@ Singleton {
         n.bodyChanged.connect(changed);
         n.actionsChanged.connect(changed);
         entries = [e, ...entries];
-        arrive(e);
+        arrive(e, true);
+        trim();
     }
 
     property var pendingChanges: ({})
@@ -177,8 +212,8 @@ Singleton {
             const old = find(key);
             if (!n || !old)
                 continue;
-            replaceEntry(key, e => makeEntry(n, key, e));
-            arrive(find(key));
+            replaceEntry(key, e => withRule(makeEntry(n, key, e)));
+            arrive(find(key), false);
         }
     }
 
@@ -267,12 +302,19 @@ Singleton {
         return Math.round(Math.max(1, s) * 1000 * Motion.slowmo);
     }
 
-    function arrive(e: var): void {
+    // fresh: a new notification (sound); false for an update of one already shown
+    function arrive(e: var, fresh: bool): void {
         if (!e)
             return;
-        if ((Settings.dnd && e.urgency < 2) || Ui.panel === "notifications") {
-            // no peek (focus, or the list is on screen already): stored, transient ones dropped
-            if (e.transient)
+        const always = e.rule === "always";
+        const quiet = Settings.dnd && e.urgency < 2 && !always; // Focus holds it back
+        if (fresh && !quiet && e.rule !== "mute")
+            sound();
+        const noPeek = e.rule === "mute" || e.rule === "nopeek" || (!Settings.notifPeek && e.urgency < 2 && !always);
+        if (quiet || noPeek || Ui.panel === "notifications") {
+            // no peek (focus, peeks off, app rule, or the list is on screen already):
+            // stored, transient / "nostore" ones dropped
+            if (ephemeral(e))
                 drop(e);
             return;
         }
@@ -324,7 +366,7 @@ Singleton {
 
     function next(): void {
         const was = peek;
-        if (was?.transient) {
+        if (ephemeral(was)) {
             peek = null;
             drop(was);
         }
@@ -335,6 +377,7 @@ Singleton {
         } else {
             end();
         }
+        trim(); // the entry that was peeking may be over the history limit
     }
 
     function end(): void {
@@ -403,6 +446,49 @@ Singleton {
         onTriggered: root.next()
     }
 
+    // ---- sound ------------------------------------------------------------------------------
+    readonly property string defaultSound: "/usr/share/sounds/freedesktop/stereo/message.oga"
+    readonly property string soundFile: {
+        const f = Settings.notifSoundFile;
+        if (f === "")
+            return defaultSound;
+        const home = Env.get("HOME");
+        return f === "~" ? home : f.startsWith("~/") ? home + f.slice(1) : f;
+    }
+    property double lastSound: 0
+
+    // a burst of notifications rings once
+    function sound(): void {
+        if (!Settings.notifSound || Date.now() - lastSound < 400)
+            return;
+        lastSound = Date.now();
+        playSound();
+    }
+    // also the settings page's "Test" button
+    function playSound(): void {
+        const target = Env.get("LUXSHELL_SOUND_TARGET");
+        const argv = target !== "" ? ["pw-play", "--target", target, soundFile] : ["pw-play", soundFile];
+        if (target !== "") {
+            console.info(`luxshell: notification sound on ${target}: ${soundFile}`);
+            Quickshell.execDetached(argv);
+        } else {
+            Exec.run(argv, "notification sound");
+        }
+    }
+
+    // ---- history limit ----------------------------------------------------------------------
+    readonly property int historyLimit: Settings.notifHistoryLimit
+    onHistoryLimitChanged: trim()
+    // oldest beyond the limit are dismissed (the peeking one stays until its peek ends)
+    function trim(): void {
+        const n = historyLimit;
+        if (n <= 0 || entries.length <= n)
+            return;
+        for (const e of entries.slice(n))
+            if (e.key !== peek?.key)
+                dismiss(e.key);
+    }
+
     Connections {
         target: Ui
         function onOverlayChanged() {
@@ -412,11 +498,11 @@ Singleton {
         function onPanelChanged() {
             if (Ui.panel === "notifications") {
                 for (const e of root.queue)
-                    if (e.transient)
+                    if (root.ephemeral(e))
                         root.drop(e);
                 root.queue = [];
                 root.paused = false;
-                if (root.peek?.transient)
+                if (root.ephemeral(root.peek))
                     root.drop(root.peek);
                 if (root.peek)
                     root.end();

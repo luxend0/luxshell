@@ -16,8 +16,9 @@ PanelWindow {
 
     screen: modelData
     anchors.top: true
-    implicitWidth: Math.min(modelData.width, Math.max(Theme.hover.width, Panels.maxWidth) + 2 * Theme.earRadius + 2 * Theme.look.shadowMargin)
-    implicitHeight: Math.min(modelData.height, Math.max(Theme.hover.height, Panels.maxHeight) + 2 + Theme.look.shadowMargin)
+    // * (1 + Motion.overshoot): room for the spring's swing (0 unless motionStyle "spring")
+    implicitWidth: Math.min(modelData.width, Math.max(Theme.hover.width, Panels.maxWidth) * (1 + Motion.overshoot) + 2 * Theme.earRadius + 2 * Theme.look.shadowMargin)
+    implicitHeight: Math.min(modelData.height, Math.max(Theme.hover.height, Panels.maxHeight) * (1 + Motion.overshoot) + 2 + Theme.look.shadowMargin)
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: Theme.collapsed.height
     color: "transparent"

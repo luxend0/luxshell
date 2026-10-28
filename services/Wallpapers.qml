@@ -16,6 +16,8 @@ import qs.config
 //               at reduced size), videos as one ffmpeg frame. Existing thumbnails cost nothing.
 //   apply(p)    writes Settings.wallpaper. background/WallpaperLayer paints it when enabled
 //               (layerEnabled), the "wallpaper" theme re-derives its palette (ThemeSync).
+//   shuffle     Settings.wallpaperShuffle: a random other wallpaper of the folders every
+//               wallpaperShuffleMinutes (scans once if nothing was scanned yet); shuffleNow()
 //
 // cacheDir: LUXSHELL_CACHE_DIR, else $XDG_CACHE_HOME/luxshell (tests point it at a temp dir).
 Singleton {
@@ -68,6 +70,35 @@ Singleton {
         if (p !== "" && p !== Settings.wallpaper)
             Settings.set("wallpaper", p);
     }
+
+    // ---- shuffle --------------------------------------------------------------------------
+    readonly property bool shuffling: Settings.wallpaperShuffle
+    onShufflingChanged: if (shuffling && !scanned)
+        scan()
+    function shuffleNow(): void {
+        if (!scanned) {
+            shufflePending = true;
+            scan();
+            return;
+        }
+        const others = entries.filter(e => e.path !== current);
+        if (others.length === 0)
+            return;
+        apply(others[Math.floor(Math.random() * others.length)].path);
+    }
+    property bool shufflePending: false
+    onScannedChanged: if (scanned && shufflePending) {
+        shufflePending = false;
+        shuffleNow();
+    }
+    Timer {
+        running: root.shuffling
+        repeat: true
+        interval: Math.max(1, Settings.wallpaperShuffleMinutes) * 60000
+        onTriggered: root.shuffleNow()
+    }
+    Component.onCompleted: if (shuffling)
+        scan()
 
     function scan(): void {
         if (dirs.length === 0) {

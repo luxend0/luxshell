@@ -15,16 +15,17 @@ import qs.services
 //   images  decoded at screen size (asynchronous), cover-cropped
 //   videos  QtMultimedia (FFmpeg backend: VA-API hardware decode when available), no audio
 //           output at all, looped; paused while a window covers the workspace on that screen
-//           (fullscreen, or any tiled window) or the session is locked - a paused decoder costs nothing
+//           (fullscreen, or any tiled window; Settings.wallpaperPauseCovered) or the session is
+//           locked - a paused decoder costs nothing
 //   change  the new wallpaper fades in over the old one once its first frame is there,
-//           then the old one is destroyed (Motion.ms: LUXSHELL_SLOWMO applies)
+//           then the old one is destroyed (Settings.wallpaperFade ms; Motion.ms: LUXSHELL_SLOWMO applies)
 Scope {
     id: root
 
     // singletons are lazy: this starts the "wallpaper" palette and the theme export
     readonly property bool sync: ThemeSync.active
 
-    readonly property int fade: 700
+    readonly property int fade: Math.max(0, Settings.wallpaperFade) // Wallpaper page
 
     // "covered" needs each window's floating flag (lastIpcObject); refresh it on the
     // events that can change it, debounced, no polling
@@ -165,7 +166,7 @@ Scope {
                                 loops: MediaPlayer.Infinite
                                 // no audioOutput: the file's audio track is never even opened
                                 // also paused while the session is locked (lock/ shows a still)
-                                readonly property bool run: !win.covered && !Lock.locked
+                                readonly property bool run: !(Settings.wallpaperPauseCovered && win.covered) && !Lock.locked
                                 onRunChanged: run ? play() : pause()
                                 onErrorOccurred: (error, message) => console.warn(`luxshell: video wallpaper ${s.path}: ${message}`)
                                 Component.onCompleted: run ? play() : pause()

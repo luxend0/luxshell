@@ -22,6 +22,8 @@ import qs.services
 ShellRoot {
     // opt-in integrations (Settings > Integrations: kitty/GTK include lines, Hyprland look + blur) start with the shell
     readonly property var integrations: [AppThemes, HyprLook]
+    // singletons that act on their own from the start: keybind file (services/Keybinds), focus schedule (services/Focus)
+    readonly property var behaviour: [Keybinds.enabled, Focus.enabled]
 
     Variants {
         model: Quickshell.screens

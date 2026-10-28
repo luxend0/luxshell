@@ -74,6 +74,9 @@ Reusable custom rows in `pages/`: `HiddenList.qml` (ids to exclude, "Add" opens 
 dropdown: launcher apps, media players), `CcPreview.qml` (the control center's real main page,
 scaled down, live), `Note.qml` (a wrapped paragraph without label under an option: what it
 changes, how to undo it; field `text`, string or function).
+`NoteRow.qml` (bare row: label left, a note right that turns into a warning while `warn()`;
+fields `title`, `note()`, `warn()`), `KeyRow.qml` (one Hyprland shortcut with "Press keys..."
+recording and conflict note, services/Keybinds), `NotifRules.qml` (app -> rule list).
 
 ## Key prefixes per area
 

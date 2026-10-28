@@ -80,6 +80,7 @@ Singleton {
     property string lookMonoFont: "" // monospace text (launcher command + calculator line, hex fields); "" = the interface font
 
     // ---- motion* : Motion (animations, hover delays) ----
+    property string motionStyle: "video" // island morph + panel timing (config/Motion): video (fitted to the video) | spring (slight overshoot) | fast | reduced (cross-fades only)
 
     // ---- launcher* : Launcher (modes, prefixes) ----
     // panels/Launcher + services/Apps; terminal, searchEngine, webResults above keep their names
@@ -92,6 +93,18 @@ Singleton {
     // ---- notif* : Notifications (focus schedule, app exceptions) ----
     property bool notifCenterGroup: true // notification center: one group per app (folded stacks); off = newest first, one header per run of the same app
     property int notifCenterMaxHeight: 760 // px the notification center may grow to, then it scrolls (Theme.nc.maxHeight)
+    property bool notifPeek: true // new notifications peek in the island (off: only the history and the bell)
+    property bool notifSound: false // play notifSoundFile on a new notification (pw-play; not during Focus, not for muted apps)
+    property string notifSoundFile: "" // "" = /usr/share/sounds/freedesktop/stereo/message.oga
+    property bool notifFocusSchedule: false // services/Focus switches dnd on/off at the edges of the schedule
+    property var notifFocusDays: [1, 2, 3, 4, 5] // ISO weekdays (1 = Monday) on which the schedule STARTS
+    property var notifFocusTime: ({
+            "from": "22:00",
+            "to": "07:00"
+        }) // span; "to" earlier than "from" ends on the next day, equal = the whole day
+    property var notifRules: [] // per app: [{ "app": "Discord", "id": "vesktop", "mode": "mute" | "nopeek" | "always" | "nostore" }]
+    property int notifHistoryLimit: 0 // notifications kept in the history, oldest dismissed first; 0 = unlimited
+    property string notifFocusEdge: "" // runtime state (services/Focus): schedule state last applied, "on" | "off" | ""
 
     // ---- cc* : Control Center (tiles, order) ----
     // panels/controlcenter/CcLayout packs them: up to two tiles per row (round buttons join a
@@ -110,11 +123,36 @@ Singleton {
     property var mediaHidden: [] // player keys luxshell ignores (no chip, no panel, no player pill)
 
     // ---- lock* : Lock Screen ----
+    property string lockClockFormat: "" // "" = like the island (clockFormat), else "24h" | "12h" | "12h-ampm"
+    property bool lockDate: true // date line above the clock
+    property real lockBlur: 1 // backdrop blur, 0..1 of Theme.lock.blurMax
+    property real lockDim: 0.55 // darkening over the blurred backdrop, 0..0.9 (Theme.lock.dim)
+    property string lockHint: "Press Any Key to Enter Password" // line under the user name; "" = none
 
     // ---- wallpaper* : Wallpaper ----
     property bool wallpaperVideos: true // wallpaper picker lists videos (mp4, webm, ...) next to images
+    property bool wallpaperPauseCovered: true // video wallpapers pause while a window covers the workspace (background/WallpaperLayer)
+    property int wallpaperFade: 700 // ms cross-fade to a new wallpaper
+    property bool wallpaperShuffle: false // pick a random wallpaper from the folders every wallpaperShuffleMinutes
+    property int wallpaperShuffleMinutes: 30
 
     // ---- keys* : Keybinds (outside luxshell, opt-in, default off) ----
+    property bool keysEnabled: false // write + load the Hyprland binds below (services/Keybinds -> luxshell-keys.lua)
+    property var keysBinds: ({
+            "launcher": "SUPER + Super_L",
+            "controlcenter": "SUPER + SHIFT + D",
+            "notifications": "SUPER + SHIFT + N",
+            "overview": "SUPER + TAB",
+            "wallpaper": "SUPER + COMMA",
+            "themes": "SUPER + SHIFT + Y",
+            "settings": "",
+            "media": "",
+            "lock": "",
+            "focus": "",
+            "playPause": "",
+            "next": "",
+            "previous": ""
+        }) // action -> Hyprland keys ("SUPER + SHIFT + D"; a lone modifier key = tap, bound on release); "" = unbound
 
     // ---- overview* : Workspace overview (panels/Overview) ----
     property string overviewPreview: "live" // live (selected / hovered card streams) | still (frames from opening) | icons (no capture)
@@ -296,7 +334,7 @@ Singleton {
     // properties of this object that are not keys (besides "_"-prefixed ones and functions)
     readonly property var _internal: ["objectName", "reloadableId", "children", "path", "ready"]
     // runtime state, not preferences: never exported, imported or reset by resetAll()
-    readonly property var _state: ["gameMode", "gameModeSaved", "integrationHyprSaved"]
+    readonly property var _state: ["gameMode", "gameModeSaved", "integrationHyprSaved", "notifFocusEdge"]
     // renamed keys { "oldKey": "newKey" }: applied when the file is read or imported
     readonly property var _renamed: ({})
 
