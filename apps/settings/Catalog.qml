@@ -27,6 +27,7 @@ Singleton {
         Notifications {},
         ControlCenter {},
         LockScreen {},
+        PowerPage {},
         Keybinds {},
         Integrations {},
         System {},

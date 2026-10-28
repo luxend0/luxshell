@@ -220,6 +220,27 @@ Singleton {
     property bool integrationBlur: false // Hyprland layer rule: blur behind the island while it is translucent
     property string integrationHyprSaved: "" // Hyprland values the integration replaced, JSON {option: value} (runtime state)
 
+    // ---- power* : Power menu (panels/PowerMenu, services/Power) ----
+    property var powerActions: ["lock", "logout", "suspend", "reboot", "poweroff", "firmware"] // shown actions in menu order (firmware only where logind supports it)
+    property var powerConfirm: ({
+            "lock": false,
+            "logout": true,
+            "suspend": false,
+            "reboot": true,
+            "poweroff": true,
+            "firmware": true
+        }) // per action: true = second click / Enter within powerConfirmTime runs it, the row turns red meanwhile
+    property real powerConfirmTime: 3 // s the armed (red) row waits for the second click, then falls back
+    property var powerCommands: ({
+            "lock": "",
+            "logout": "",
+            "suspend": "",
+            "reboot": "",
+            "poweroff": "",
+            "firmware": ""
+        }) // per action: own shell command (sh -c); "" = default (luxshell lock, hl.dsp.exit(), systemctl ...)
+    property bool powerDetails: true // info line under each action: lock keybind, open windows, kernel / updates since boot, uptime
+
     // ==== END OF KEYS ======================================================================
 
     // ---- API -------------------------------------------------------------------------------

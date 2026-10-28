@@ -952,4 +952,48 @@ Singleton {
         readonly property color chipUsed: root.mix(root.settings.field, root.text, 0.04)
         readonly property color remove: root.settings.danger
     }
+
+    // ---- power menu (panels/PowerMenu, variant B: a menu list with info lines) --------------
+    // The launcher's language (black body, icon tile, title, dim subtitle) narrowed to a menu:
+    // filter line on top, one row per action. A confirmed action arms its row: it fills with
+    // the power red and drains back over Settings.powerConfirmTime (the fallback countdown).
+    readonly property QtObject power: QtObject {
+        readonly property int width: 540
+        readonly property int headerHeight: 66     // filter row; 1 px separator on its last line
+        readonly property real centerY: 34
+        readonly property real lensX: 24
+        readonly property real lensSize: 18
+        readonly property real inputX: 58
+        readonly property real inputSize: root.tx(17)
+        readonly property real hostSize: root.tx(14)      // user@host at the right of the filter row
+        readonly property real inset: 14           // separator + rows, left and right
+        readonly property int listTop: 78
+        readonly property int padBottom: 14
+        readonly property int rowHeight: 62
+        readonly property real rowRadius: root.rad(14)
+        readonly property real barX: 2             // selection bar inside the highlight (launcher)
+        readonly property real barWidth: 3
+        readonly property real barHeight: 30
+        readonly property real tileX: 12
+        readonly property real tileSize: 42
+        readonly property real tileRadius: root.rad(11)
+        readonly property real glyphSize: 20
+        readonly property real textX: 68
+        readonly property real titleSize: root.tx(18)
+        readonly property real subtitleSize: root.tx(14.5)
+        readonly property real titleBaseline: 27   // from the row top
+        readonly property real subtitleBaseline: 46
+        readonly property int highlightMove: 160
+        readonly property int stagger: 26          // ms between rows while the panel opens
+        readonly property real revealShift: 8
+        readonly property int armFade: 140         // red in / out
+        readonly property int armGuard: 350        // ms after arming in which a second click is ignored (double click)
+        readonly property color highlight: root.mix(root.island, root.text, 0.105)
+        readonly property color separator: root.mix(root.island, root.text, 0.1)
+        readonly property color tile: Qt.rgba(root.text.r, root.text.g, root.text.b, 0.065)
+        readonly property color armed: root.danger                          // remaining part of the countdown
+        readonly property color armedSpent: root.mix(root.island, root.danger, 0.36) // elapsed part
+        readonly property color armedInk: "#ffffff"
+        readonly property color armedTile: Qt.rgba(1, 1, 1, 0.18)
+    }
 }

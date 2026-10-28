@@ -69,7 +69,7 @@ then one line in `Catalog.qml` `sources`, at its sidebar position. A page withou
 (or `hidden: true`) stays out of the sidebar and search. Timers, Processes and Components
 the page needs go straight inside it (see `pages/Motion.qml`, `pages/Launcher.qml`).
 Existing pages: `BarIsland, Media, ClockDate, Appearance, ThemeEditor, Wallpaper, Motion, Launcher,
-OverviewPickers, Notifications, ControlCenter, LockScreen, Keybinds, Integrations, System, Demo`.
+OverviewPickers, Notifications, ControlCenter, LockScreen, PowerPage, Keybinds, Integrations, System, Demo`.
 Reusable custom rows in `pages/`: `HiddenList.qml` (ids to exclude, "Add" opens a filterable
 dropdown: launcher apps, media players), `CcPreview.qml` (the control center's real main page,
 scaled down, live), `Note.qml` (a wrapped paragraph without label under an option: what it
@@ -92,6 +92,7 @@ recording and conflict note, services/Keybinds), `NotifRules.qml` (app -> rule l
 | `overview*` | Overview & Pickers (workspace overview) |
 | `picker*` | Overview & Pickers (theme / wallpaper picker; `wallpaperVideos` keeps the wallpaper prefix) |
 | `lock*` | Lock Screen |
+| `power*` | Power (power menu: actions, confirmation, commands) |
 | `wallpaper*` | Wallpaper |
 | `keys*` | Keybinds (outside luxshell, default off) |
 | `integration*` | apps theme, Hyprland look (outside luxshell, default off) |
