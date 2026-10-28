@@ -6,8 +6,9 @@ import qs.services
 import qs.widgets
 import qs.panels.controlcenter
 
-// Control center (ref/08, ref/09, ref/09c). One main page; network, Bluetooth,
-// sound and display open as a sheet over it (the panel keeps its size):
+// Control center (ref/08, ref/09, ref/09c). One main page (4 rows, ends after the
+// Display slider; notifications have their own panel); network, Bluetooth, sound and
+// display open as a sheet over it:
 //
 //   open   the main page dims (black, Theme.cc.sheet.dim), the sheet grows out of
 //          the tile / card that opened it (container transform: rect, radius),
@@ -15,6 +16,11 @@ import qs.panels.controlcenter
 //          the panel. The opening control hides, the sheet takes its place.
 //   close  back disc, Esc, Backspace or a click on the dimmed page: the reverse.
 //   resize content changes (a device found) animate the height, still centred.
+//   panel  the main page is lower than most sheets: while a sheet is up the panel (and
+//          with it the island) grows to the sheet + inset above and below, capped at
+//          Theme.cc.maxHeight; a sheet lower than the main page stays centred in it.
+//          Closing, the panel shrinks back once the sheet is most of the way home
+//          (sheet.shrinkAt), so the shrinking island never cuts the flying sheet.
 //
 // Start sheet: `startPage` (registry entry "bluetooth"), CcNav (IPC target
 // "controlcenter", works before the panel was ever opened) or LUXSHELL_CC_PAGE.
@@ -44,8 +50,14 @@ PanelBase {
     readonly property Item sheetItem: sheetLoader.item
     readonly property Item pageItem: page === "main" ? mainPage : sheetItem
 
+    // the panel height follows the sheet's target height (not the animated one), so the
+    // island morphs once per change instead of chasing every frame
+    readonly property bool tall: sheetId !== "" && (page !== "main" || morph > sh.shrinkAt)
+    readonly property int sheetBox: sheetTarget + 2 * sh.inset
+
     preferredWidth: Theme.cc.width
-    preferredHeight: Theme.cc.height
+    preferredHeight: tall ? Math.max(Theme.cc.height, sheetBox) : Theme.cc.height
+    maxHeight: Theme.cc.maxHeight
     cornerRadius: Theme.cc.radius
 
     function lerp(a: real, b: real, t: real): real {
@@ -196,7 +208,11 @@ PanelBase {
 
     // sheet height: content height, clamped; animated once the sheet has landed
     readonly property real sheetW: width - 2 * sh.inset
-    property real sheetH: Math.min(sh.maxHeight, sheetItem ? Math.ceil(sheetItem.implicitHeight) : 200)
+    readonly property int sheetTarget: Math.min(sh.maxHeight, sheetItem ? Math.ceil(sheetItem.implicitHeight) : 200)
+    property real sheetH: sheetTarget
+    // where the landed sheet sits: below the inset when the panel grew for it, else centred
+    // in the main page
+    readonly property real sheetY: sheetBox >= Theme.cc.height ? sh.inset : Math.round((Theme.cc.height - sheetH) / 2)
     Behavior on sheetH {
         enabled: root.settled
         NumberAnimation {
@@ -343,7 +359,7 @@ PanelBase {
 
         visible: root.sheetId !== "" && root.morph > 0.001
         x: root.lerp(root.from.x, root.sh.inset, root.morph)
-        y: root.lerp(root.from.y, Math.round((root.height - root.sheetH) / 2), root.morph)
+        y: root.lerp(root.from.y, root.sheetY, root.morph)
         width: root.lerp(root.from.w, root.sheetW, root.morph)
         height: root.lerp(root.from.h, root.sheetH, root.morph)
 

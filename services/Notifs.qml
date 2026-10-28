@@ -6,7 +6,7 @@ import Quickshell.Services.Notifications
 import qs.config
 import qs.core
 
-// Notifications: store (history for the control center + hover status) and the
+// Notifications: store (history for the notification center + hover status) and the
 // island peek ("live activity", panels/NotifOverlay.qml, overlay id "notif").
 //
 // The D-Bus server only runs with LUXSHELL_NOTIFS=1 (Ambxst owns
@@ -18,7 +18,7 @@ import qs.core
 //   body, urgency (0 low, 1 normal, 2 critical), time (ms), actions [{ id, text }],
 //   hasDefault, alive (actions still invocable), seen
 // `groups`: the same entries per app (group = desktop entry, else app name).
-// Actions for the control center: dismiss(key), clearGroup(group), clear(),
+// Actions for the notification center: dismiss(key), clearGroup(group), clear(),
 // invoke(key, actionId), markAllRead().
 //
 // Peek: one entry at a time in the island. A notification of the app that is
@@ -26,7 +26,8 @@ import qs.core
 // others queue and shorten the current peek. Hover/click on the peek expands it to
 // the full card (expanded) and holds it; drag up hides it (it stays in the history).
 // Settings.dnd: no peeks, critical ones excepted. Priority: an open panel hides
-// the peek (paused; the control center consumes it), an activity OSD preempts it
+// the peek (paused; the notification center consumes it, its list shows everything),
+// an activity OSD preempts it
 // (the peek comes back for its remaining time).
 Singleton {
     id: root
@@ -265,7 +266,7 @@ Singleton {
     function arrive(e: var): void {
         if (!e)
             return;
-        if ((Settings.dnd && e.urgency < 2) || Ui.panel === "controlcenter") {
+        if ((Settings.dnd && e.urgency < 2) || Ui.panel === "notifications") {
             // no peek (focus, or the list is on screen already): stored, transient ones dropped
             if (e.transient)
                 drop(e);
@@ -405,7 +406,7 @@ Singleton {
                 root.sync(); // an activity preempted the peek
         }
         function onPanelChanged() {
-            if (Ui.panel === "controlcenter") {
+            if (Ui.panel === "notifications") {
                 for (const e of root.queue)
                     if (e.transient)
                         root.drop(e);
@@ -442,6 +443,13 @@ Singleton {
         }
         function clear(): void {
             root.clear();
+        }
+        // test data (tools/notif-test.sh): pretend every stored notification arrived
+        // `minutes` earlier, so relative times ("5m", "2h") can be shown without waiting
+        function age(minutes: int): void {
+            root.entries = root.entries.map(e => Object.assign({}, e, {
+                    "time": e.time - minutes * 60000
+                }));
         }
         function state(): string {
             return JSON.stringify({
