@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import qs.panels
+import qs.services
 
 // Panel registry: id -> component + kind. The island knows nothing else about
 // panels; each panel reports its own size/radius at runtime (panels/PanelBase.qml).
@@ -28,8 +29,23 @@ Singleton {
                 "component": launcher,
                 "kind": "panel"
             },
+            // live activities (services/Activities.qml): one component, the id picks the
+            // data ("activity" = Activities.current, "osd" / "brightness" = live presets,
+            // also flashable over IPC); "notif" = notification peek/card (services/Notifs.qml)
             "osd": {
-                "component": volumeOsd,
+                "component": activity,
+                "kind": "overlay"
+            },
+            "brightness": {
+                "component": activity,
+                "kind": "overlay"
+            },
+            "activity": {
+                "component": activity,
+                "kind": "overlay"
+            },
+            "notif": {
+                "component": notif,
                 "kind": "overlay"
             }
         })
@@ -69,6 +85,10 @@ Singleton {
             report(probe.maxWidth, probe.maxHeight);
             probe.destroy();
         }
+        // the overlay drivers flash on their own (Pipewire, Hyprland, D-Bus events): touch
+        // them once so they live from the start, after the registry itself is complete
+        void Activities.current;
+        void Notifs.count;
     }
 
     Component {
@@ -80,7 +100,11 @@ Singleton {
         Launcher {}
     }
     Component {
-        id: volumeOsd
-        VolumeOsd {}
+        id: activity
+        ActivityOverlay {}
+    }
+    Component {
+        id: notif
+        NotifOverlay {}
     }
 }

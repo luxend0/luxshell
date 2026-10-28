@@ -14,6 +14,7 @@ Singleton {
     // read-only mirrors; change via set()
     readonly property string theme: adapter.theme
     readonly property string accent: adapter.accent
+    readonly property bool dnd: adapter.dnd
 
     function set(key: string, value: var): bool {
         if (adapter[key] === undefined) {
@@ -46,6 +47,7 @@ Singleton {
             id: adapter
             property string theme: "noir"
             property string accent: "" // "" = theme accent, else #rrggbb
+            property bool dnd: false // do not disturb: no notification peeks (critical ones still peek)
         }
     }
 }
