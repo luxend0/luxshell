@@ -313,4 +313,76 @@ Singleton {
         readonly property int thumbW: 500          // cached thumbnail, 2x the card
         readonly property int thumbH: 300
     }
+
+    // ---- live activities (OSD, notifications) ---------------------------------
+    // OSD measured 1:1 from ref/10-volume-osd.png (2560x1440): island 376 x 60, bottom
+    // radius ~30; speaker glyph 18 px at x 17, slider x 53..298 (8 px), "100%" 15 px
+    // right-aligned 16 px from the edge, centre line y 30. Activities without a value
+    // (mic muted, layout, caps lock) use the same bar: label where the slider starts,
+    // detail where the percentage sits; long labels widen it up to maxWidth.
+    readonly property QtObject osd: QtObject {
+        readonly property int width: 376
+        readonly property int maxWidth: 520
+        readonly property int height: 60
+        readonly property int radius: 30
+        readonly property real centerY: 30
+        readonly property real padLeft: 17
+        readonly property real iconSize: 18
+        readonly property real sliderX: 53
+        readonly property real sliderWidth: 245
+        readonly property real sliderHeight: 8
+        readonly property real padRight: 16
+        readonly property real valueSize: 15
+        readonly property real labelSize: 15
+        readonly property real gap: 22             // slider/label -> value/detail
+        readonly property int valueMove: 160       // slider follows a new value
+        readonly property int swapOut: 90          // content dip when the activity changes
+        readonly property int swapIn: 180
+        readonly property color valueColor: root.mix(root.island, root.text, 0.5)
+        readonly property color track: root.mix(root.island, root.text, 0.16)
+        readonly property color dimFill: root.mix(root.island, root.text, 0.38) // muted sink
+    }
+
+    // Notification peek: lives IN the collapsed bar (same height), grows a little in
+    // width: app icon left, title next to it; long titles scroll once (marquee).
+    readonly property QtObject peek: QtObject {
+        readonly property int height: 42
+        readonly property int radius: 20
+        readonly property int minWidth: 340
+        readonly property int maxWidth: 460
+        readonly property real padLeft: 15
+        readonly property real padRight: 22
+        readonly property real iconSize: 22
+        readonly property real gap: 10
+        readonly property real titleSize: 16
+        readonly property real badgeSize: 14
+        readonly property real badgeTextSize: 10
+        readonly property int marqueeDelay: 900
+        readonly property real marqueeSpeed: 0.045  // px per ms
+        readonly property int enter: 320            // icon pop + title slide
+        readonly property real dismissDrag: 22      // px up that dismisses the peek
+    }
+
+    // Full notification card (hover / click on the peek).
+    readonly property QtObject card: QtObject {
+        readonly property int width: 520
+        readonly property int maxHeight: 460
+        readonly property int radius: 32
+        readonly property real pad: 22
+        readonly property real iconSize: 24
+        readonly property real appSize: 14
+        readonly property real titleSize: 17
+        readonly property real bodySize: 15
+        readonly property int bodyLines: 4
+        readonly property real imageSize: 52
+        readonly property real actionHeight: 34
+        readonly property real actionSize: 14
+        readonly property real rowSize: 14         // older notifications of the same app
+        readonly property int groupRows: 3
+        readonly property int expand: 260          // compact <-> card content cross-fade
+        readonly property real dismissDrag: 70
+        readonly property color action: root.mix(root.island, root.text, 0.12)
+        readonly property color actionHover: root.mix(root.island, root.text, 0.2)
+        readonly property color separator: root.mix(root.island, root.text, 0.1)
+    }
 }

@@ -34,13 +34,21 @@ Rectangle {
         }
     ]
     property var fake: []
-    readonly property var items: Notifs.live ? Notifs.list : fake
+    // Notifs.entries (newest first) mapped to the row fields; `key` identifies the entry
+    readonly property var items: Notifs.live ? Notifs.entries.map(e => ({
+                "key": e.key,
+                "appName": e.app,
+                "appIcon": e.icon,
+                "image": e.image,
+                "summary": e.summary,
+                "body": e.body
+            })) : fake
 
     // fake entries are plain objects; a JS array model hands out copies, so go by index
     function dismiss(n, index: int) {
         const wasCurrent = Cc.current && Cc.current === list.itemAtIndex(index);
         if (Notifs.live)
-            n.dismiss();
+            Notifs.dismiss(n.key);
         else
             fake = fake.filter((x, i) => i !== index);
         // keep the keyboard selection in the list instead of losing it
@@ -48,16 +56,13 @@ Rectangle {
             Qt.callLater(() => Cc.current = list.itemAtIndex(Math.min(index, list.count - 1)) ?? clear);
     }
     function invoke(n, index: int) {
-        if (Notifs.live) {
-            const action = (n.actions ?? []).find(a => a.identifier === "default");
-            if (action)
-                action.invoke();
-        }
+        if (Notifs.live)
+            Notifs.invoke(n.key, "default");
         dismiss(n, index);
     }
     function clearAll() {
         if (Notifs.live)
-            [...items].forEach(n => n.dismiss());
+            Notifs.clear();
         else
             fake = [];
     }

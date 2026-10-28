@@ -1,4 +1,5 @@
 //@ pragma Env QSG_DISTANCEFIELD_ANTIALIASING=gray
+//@ pragma IconTheme Papirus-Dark
 // luxshell - island core (candidate C: architecture first)
 //
 //   config/    Theme (roles, geometry), Motion (island morph timing), Themes (palette data), Settings, Env

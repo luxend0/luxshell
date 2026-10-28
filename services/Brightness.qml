@@ -21,13 +21,19 @@ Singleton {
     property bool loading: false
     property double lastRead: 0
 
-    readonly property bool ready: displays.length > 0
-    readonly property real value: ready ? displays[primary].value : 0
-    readonly property string label: ready ? displays[primary].model : ""
+    // test path (IPC "activity brightness <v>"): shows a value without touching DDC
+    property real fake: -1
+    readonly property bool ready: fake >= 0 || displays.length > 0
+    readonly property real value: fake >= 0 ? fake : displays.length > 0 ? displays[primary].value : 0
+    readonly property string label: displays.length > 0 ? displays[primary].model : ""
 
     readonly property int minInterval: 30000
     property var queue: ({}) // index -> raw value waiting for the bus
     property int writingIndex: -1
+
+    function simulate(v: real): void {
+        fake = Math.max(0, Math.min(1, v));
+    }
 
     function refresh(force: bool): void {
         if (loading || (!force && Date.now() - lastRead < minInterval))
