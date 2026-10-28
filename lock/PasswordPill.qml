@@ -61,30 +61,73 @@ Item {
         }
     }
 
-    Row {
+    // One delegate per typed character in a ListModel synced to the buffer length: existing dots
+    // stay put (an int model rebuilt every dot on each key, all of them blinked and re-popped),
+    // new dots pop in, deleted ones shrink away, the row glides to stay centred.
+    ListModel {
+        id: dotModel
+    }
+    function syncDots(): void {
+        const n = Math.min(Lock.buffer.length, root.maxDots);
+        while (dotModel.count < n)
+            dotModel.append({});
+        while (dotModel.count > n)
+            dotModel.remove(dotModel.count - 1);
+    }
+    Connections {
+        target: Lock
+        function onBufferChanged() {
+            root.syncDots();
+        }
+    }
+    Component.onCompleted: syncDots()
+
+    ListView {
         id: dots
-        anchors.centerIn: parent
-        anchors.horizontalCenterOffset: -root.capsRoom / 2
+        readonly property real fullWidth: count > 0 ? count * root.g.dotSize + (count - 1) * root.g.dotGap : 0
+        x: (parent.width - fullWidth) / 2 - root.capsRoom / 2
+        anchors.verticalCenter: parent.verticalCenter
+        width: Math.max(1, fullWidth)
+        height: root.g.dotSize
+        orientation: ListView.Horizontal
         spacing: root.g.dotGap
+        interactive: false
+        clip: false
+        model: dotModel
+        Behavior on x {
+            NumberAnimation {
+                duration: Motion.ms(170)
+                easing.type: Easing.OutCubic
+            }
+        }
 
-        Repeater {
-            model: Math.min(Lock.buffer.length, root.maxDots)
-
-            Rectangle {
-                id: dot
-                width: root.g.dotSize
-                height: width
-                radius: width / 2
-                color: root.g.fg(0.95)
-                scale: 0
-                Component.onCompleted: pop.start()
-                Anim {
-                    id: pop
-                    target: dot
-                    property: "scale"
-                    to: 1
-                    ms: 140
-                }
+        delegate: Rectangle {
+            width: root.g.dotSize
+            height: width
+            radius: width / 2
+            color: root.g.fg(0.95)
+        }
+        add: Transition {
+            NumberAnimation {
+                property: "scale"
+                from: 0.2
+                to: 1
+                duration: Motion.ms(150)
+                easing.type: Easing.OutBack
+            }
+            NumberAnimation {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Motion.ms(110)
+            }
+        }
+        remove: Transition {
+            NumberAnimation {
+                properties: "scale,opacity"
+                to: 0
+                duration: Motion.ms(120)
+                easing.type: Easing.InCubic
             }
         }
 
