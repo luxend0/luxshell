@@ -25,6 +25,8 @@ import Quickshell
 //                         (services/Lock.qml)
 //   LUXSHELL_SETTINGS_DEMO=1  settings app shows the "Option types" page (every option kind,
 //                         apps/settings/pages/Demo.qml); hidden otherwise
+//   LUXSHELL_FAKE_WEATHER  wttr.in answer "%x|%t|%C" (e.g. "m|+12°C|Partly cloudy") for the island's
+//                         weather widget instead of asking the network (services/Weather)
 Singleton {
     id: root
 
@@ -41,6 +43,7 @@ Singleton {
     readonly property real slowmo: Math.max(0.1, parseFloat(get("LUXSHELL_SLOWMO")) || 1)
     readonly property string lockTestPassword: get("LUXSHELL_LOCK_TEST_PASSWORD")
     readonly property bool settingsDemo: get("LUXSHELL_SETTINGS_DEMO") === "1"
+    readonly property string fakeWeather: get("LUXSHELL_FAKE_WEATHER")
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
         if (own !== "")

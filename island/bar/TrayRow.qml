@@ -10,7 +10,14 @@ Row {
     id: root
 
     property int openMenus: 0
+    property real t: 1
+    property real textOpacity: 1
+    property bool interactive: true
+    property var screen: null
     readonly property real iconSize: Theme.hover.trayIconSize
+    // BarWidget contract (hover island only)
+    readonly property real wC: implicitWidth
+    readonly property real wH: implicitWidth
 
     spacing: 10
 
@@ -33,6 +40,7 @@ Row {
                 id: area
                 anchors.fill: parent
                 anchors.margins: -4
+                enabled: root.interactive
                 hoverEnabled: true
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 onClicked: m => {

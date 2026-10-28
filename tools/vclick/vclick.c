@@ -4,6 +4,10 @@
 // tools/media-clicktest.sh; vp.xml is the minimal wlr-virtual-pointer-unstable-v1 subset.
 //   vclick <wayland-display> click          press+release
 //   vclick <wayland-display> drag DX        press, move DX px in steps, release
+//   vclick <wayland-display> drag DX DY [HOLD_MS]   same in 2D; HOLD_MS keeps the button down at
+//                                           the end (screenshots of a drag in progress)
+//   vclick <wayland-display> middle         middle-button click
+//   vclick <wayland-display> wheel N        N wheel notches down (negative: up), no button
 //   vclick <wayland-display> wiggle         only the 1 px motion: delivers enter/leave after a
 //                                           hyprctl cursor warp (which sends no motion itself)
 #include <stdio.h>
@@ -36,17 +40,29 @@ int main(int argc, char **argv) {
     zwlr_virtual_pointer_v1_motion(p, t++, wl_fixed_from_int(1), 0); zwlr_virtual_pointer_v1_frame(p);
     zwlr_virtual_pointer_v1_motion(p, t++, wl_fixed_from_int(-1), 0); zwlr_virtual_pointer_v1_frame(p);
     wl_display_roundtrip(dpy); usleep(50000);
+    if (!strcmp(argv[2], "wheel") && argc > 3) {
+        int n = atoi(argv[3]), dir = n < 0 ? -1 : 1;
+        for (int i = 0; i < abs(n); i++) {
+            zwlr_virtual_pointer_v1_axis_source(p, 0); // wheel
+            zwlr_virtual_pointer_v1_axis_discrete(p, t++, 0, wl_fixed_from_int(15 * dir), dir);
+            zwlr_virtual_pointer_v1_frame(p);
+            wl_display_roundtrip(dpy); usleep(30000);
+        }
+        zwlr_virtual_pointer_v1_destroy(p); wl_display_roundtrip(dpy); wl_display_disconnect(dpy); return 0;
+    }
     if (!strcmp(argv[2], "wiggle")) { zwlr_virtual_pointer_v1_destroy(p); wl_display_roundtrip(dpy); wl_display_disconnect(dpy); return 0; }
-    zwlr_virtual_pointer_v1_button(p, t++, 0x110, 1); zwlr_virtual_pointer_v1_frame(p);
+    const uint32_t btn = !strcmp(argv[2], "middle") ? 0x112 : 0x110;
+    zwlr_virtual_pointer_v1_button(p, t++, btn, 1); zwlr_virtual_pointer_v1_frame(p);
     wl_display_roundtrip(dpy); usleep(60000);
     if (!strcmp(argv[2], "drag") && argc > 3) {
-        int dx = atoi(argv[3]), steps = 10;
+        int dx = atoi(argv[3]), dy = argc > 4 ? atoi(argv[4]) : 0, steps = argc > 4 ? 24 : 10;
         for (int i = 0; i < steps; i++) {
-            zwlr_virtual_pointer_v1_motion(p, t++, wl_fixed_from_double((double)dx / steps), 0); zwlr_virtual_pointer_v1_frame(p);
+            zwlr_virtual_pointer_v1_motion(p, t++, wl_fixed_from_double((double)dx / steps), wl_fixed_from_double((double)dy / steps)); zwlr_virtual_pointer_v1_frame(p);
             wl_display_roundtrip(dpy); usleep(20000);
         }
+        if (argc > 5) usleep(atoi(argv[5]) * 1000);
     }
-    zwlr_virtual_pointer_v1_button(p, t++, 0x110, 0); zwlr_virtual_pointer_v1_frame(p);
+    zwlr_virtual_pointer_v1_button(p, t++, btn, 0); zwlr_virtual_pointer_v1_frame(p);
     wl_display_roundtrip(dpy); usleep(50000);
     zwlr_virtual_pointer_v1_destroy(p);
     wl_display_roundtrip(dpy);

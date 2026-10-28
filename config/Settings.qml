@@ -65,6 +65,50 @@ Singleton {
     property real notifTimeoutCritical: 9 // s, critical
 
     // ---- island* : Bar & Island (layout, size, workspaces, click/scroll) ----
+    // widgets per state and slot, in order (island/bar/BarRegistry.qml lists the widget ids;
+    // "spacer" may repeat). The default is the video's island; the settings app edits it by
+    // drag and drop (apps/settings/island/IslandEditor.qml)
+    property var islandLayout: ({
+            "collapsed": {
+                "left": ["workspaces"],
+                "center": ["clock"],
+                "right": ["network", "volume"]
+            },
+            "hover": {
+                "top": {
+                    "left": ["media", "window"],
+                    "center": ["clock", "date"],
+                    "right": ["settings", "power", "notifications"]
+                },
+                "bottom": {
+                    "left": ["workspaces"],
+                    "center": [],
+                    "right": ["tray", "network", "volume"]
+                }
+            }
+        })
+    property real islandScale: 1 // size of the island only (collapsed + hover), panels keep theirs
+    property int islandMargin: 0 // px from the top edge; 0 = flush with the edge (video), > 0 = floating pill
+    property int islandHoverDelay: 0 // ms the pointer rests on the island before it expands
+    property bool islandHoverExpand: true // false: the island expands on click instead of hover
+    property string islandClickAction: "controlcenter" // controlcenter | notifications | launcher | none
+    property string islandScrollAction: "volume" // volume | workspaces | none
+    property string islandMiddleClick: "none" // none | controlcenter | notifications | launcher | overview | playpause | mute
+    // per-widget options (the island editor shows them next to the preview)
+    property bool islandClockSeconds: false // clock widget shows seconds (clock format: clockFormat)
+    property string islandWorkspaceStyle: "capsules" // capsules (video) | dots | numbers
+    property string islandNetworkStyle: "bars" // bars (video) | icon
+    property bool islandVolumePercent: false // volume widget: percentage after the glyph
+    property bool islandWindowTitle: true // window widget: app icon + title (false = icon only)
+    property int islandWindowMaxWidth: 300 // px, longest window title in the hover island
+    property bool islandWindowYield: true // window widget hides while the media chip shows in the same slot (video)
+    property bool islandNotifLabel: true // notifications widget: "All caught up" text next to the bell
+    property bool islandBatteryPercent: true // battery widget: percentage next to the glyph
+    property string islandWeatherLocation: "" // wttr.in location, "" = by IP
+    property string islandWeatherUnit: "c" // c | f
+    property int islandSysmonInterval: 3 // s between cpu/ram samples (2..10)
+    property string islandKeyboardStyle: "code" // code ("DE") | name ("German")
+    property int islandSpacerWidth: 24 // px of the spacer widget
 
     // ---- look* : Appearance (colours, font, radius, transparency, shadow, border, scale) ----
 

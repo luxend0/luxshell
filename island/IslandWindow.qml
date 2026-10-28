@@ -16,10 +16,10 @@ PanelWindow {
 
     screen: modelData
     anchors.top: true
-    implicitWidth: Math.min(modelData.width, Math.max(Theme.hover.width, Panels.maxWidth) + 2 * Theme.earRadius)
-    implicitHeight: Math.min(modelData.height, Math.max(Theme.hover.height, Panels.maxHeight) + 2)
+    implicitWidth: Math.min(modelData.width, Math.ceil(Math.max(island.needWidth, Panels.maxWidth)) + 2 * Theme.earRadius)
+    implicitHeight: Math.min(modelData.height, Math.ceil(Math.max(island.needHeight, Panels.maxHeight + island.margin)) + 2)
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: Theme.collapsed.height
+    exclusiveZone: island.zone
     color: "transparent"
 
     WlrLayershell.namespace: "luxshell"

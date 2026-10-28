@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.config
 import qs.core
+import qs.services
 import qs.island.bar
 
 // Morph container for one screen. It decides WHAT is shown (Ui priorities) and
@@ -13,6 +14,11 @@ import qs.island.bar
 // bar content's horizontal/vertical/workspace-row progress) with its own duration, delay and
 // curve for the transition "from>to", always from the current value, so every
 // transition can interrupt every other one.
+//
+// Size per state comes from the layout (BarContent: Settings.islandLayout, the default is the
+// video's 316 x 42 / 958 x 100), times Settings.islandScale (island only, panels keep theirs).
+// Settings.islandMargin > 0 lets the island float below the edge as a pill. Hover delay,
+// expand-on-click, click / middle-click / scroll actions: Settings.island* (Bar & Island page).
 Item {
     id: island
 
@@ -30,9 +36,20 @@ Item {
     readonly property bool grabs: modal && Ui.panelScreen === screenName
     readonly property Item panel: shownId !== "" ? host.current : null
 
+    // island-only scale and distance from the top edge
+    readonly property real s: Math.max(0.5, Math.min(2, Settings.islandScale || 1))
+    readonly property int margin: Math.max(0, Settings.islandMargin)
+    // what the layer surface must hold (IslandWindow)
+    readonly property real needWidth: Math.max(bar.wC, bar.wH) * s
+    readonly property real needHeight: Math.max(bar.hC, bar.hH) * s + margin
+    readonly property int zone: Math.round(bar.hC * s) + margin
+
     property bool pointerInside: false
-    readonly property bool expanded: Ui.forced === "hover" || (Ui.forced !== "collapsed" && (pointerInside || bar.holdOpen))
+    property bool clickOpen: false // expanded by a click (Settings.islandHoverExpand off)
+    readonly property bool expanded: !bar.hoverEmpty && (Ui.forced === "hover" || (Ui.forced !== "collapsed" && ((Settings.islandHoverExpand && pointerInside) || clickOpen || bar.holdOpen || BarRegistry.peeking)))
     readonly property string mode: panel ? "panel" : expanded ? "hover" : "collapsed"
+    onModeChanged: if (mode === "panel")
+        clickOpen = false
 
     readonly property var target: {
         if (panel)
@@ -41,12 +58,50 @@ Item {
                 "h": panel.preferredHeight,
                 "r": panel.cornerRadius
             };
-        const g = expanded ? Theme.hover : Theme.collapsed;
-        return {
-            "w": g.width,
-            "h": g.height,
-            "r": g.radius
+        return expanded ? {
+            "w": bar.wH * s,
+            "h": bar.hH * s,
+            "r": bar.rH * s
+        } : {
+            "w": bar.wC * s,
+            "h": bar.hC * s,
+            "r": bar.rC * s
         };
+    }
+
+    // click on the bar (children with own handlers win): Settings.islandClickAction, or expand
+    // first when hover does not; middle click: Settings.islandMiddleClick
+    function clicked(button: int): void {
+        if (button === Qt.MiddleButton) {
+            run(Settings.islandMiddleClick);
+            return;
+        }
+        if (!Settings.islandHoverExpand && !expanded && !bar.hoverEmpty) {
+            clickOpen = true;
+            return;
+        }
+        run(Settings.islandClickAction);
+    }
+    function run(action: string): void {
+        switch (action) {
+        case "controlcenter":
+        case "notifications":
+        case "launcher":
+        case "overview":
+            Ui.toggle(action, screenName);
+            return;
+        case "playpause":
+            if (Media.active)
+                Media.toggle(Media.active);
+            return;
+        case "mute":
+            {
+                const a = Audio.sink?.audio;
+                if (a && Exec.allow(`mute ${!a.muted}`))
+                    a.muted = !a.muted;
+                return;
+            }
+        }
     }
 
     // ---- morph state (animated by morph(), never bound) ----------------------
@@ -227,33 +282,48 @@ Item {
     Timer {
         id: leaveHold
         interval: Theme.hoverHold
-        onTriggered: island.pointerInside = false
+        onTriggered: {
+            island.pointerInside = false;
+            island.clickOpen = false;
+        }
+    }
+    // Settings.islandHoverDelay: the pointer rests this long before the island expands
+    Timer {
+        id: enterDelay
+        interval: Math.max(0, Settings.islandHoverDelay)
+        onTriggered: island.pointerInside = true
     }
 
     IslandShape {
         id: shape
         anchors.top: parent.top
+        anchors.topMargin: island.margin
         anchors.horizontalCenter: parent.horizontalCenter
         width: island.bw
         height: island.bh
         radius: island.br
+        floating: island.margin > 0
 
         HoverHandler {
             onHoveredChanged: {
                 if (hovered) {
                     leaveHold.stop();
-                    island.pointerInside = true;
+                    if (Settings.islandHoverDelay > 0 && !island.pointerInside)
+                        enterDelay.restart();
+                    else
+                        island.pointerInside = true;
                 } else {
+                    enterDelay.stop();
                     leaveHold.restart();
                 }
             }
         }
 
-        // click on the bar = control center (children with own handlers win)
         MouseArea {
             anchors.fill: parent
             enabled: !island.modal
-            onClicked: Ui.toggle("controlcenter", island.screenName)
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+            onClicked: m => island.clicked(m.button)
         }
 
         Item {
@@ -262,8 +332,10 @@ Item {
 
             BarContent {
                 id: bar
-                width: parent.width
-                height: parent.height
+                width: parent.width / island.s
+                height: parent.height / island.s
+                scale: island.s
+                transformOrigin: Item.TopLeft
                 pw: island.cxp
                 ph: island.cyp
                 pr: island.wyp
