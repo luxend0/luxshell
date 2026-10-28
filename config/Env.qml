@@ -12,6 +12,11 @@ import Quickshell
 //   LUXSHELL_CONFIG_DIR   settings directory (default $XDG_CONFIG_HOME/luxshell)
 //   LUXSHELL_FAKE_CLOCK   ISO date/time shown instead of the real clock (screenshots)
 //   LUXSHELL_SLOWMO       factor for every animation duration (10 = ten times slower, frame captures)
+//   LUXSHELL_DRYRUN=1     system actions (Wi-Fi, Bluetooth, volume, brightness, lock) only log (services/Exec)
+//   LUXSHELL_CC_PAGE      control center sheet shown on open: network | bluetooth | sound | display
+//   LUXSHELL_FAKE_BT      1 = demo Bluetooth devices, scanning = demo that never finds a nearby device
+//   LUXSHELL_FAKE_WIFI=1  demo Wi-Fi adapter + networks (services/Networks)
+//   LUXSHELL_FAKE_MIXER=1 demo app playback streams (services/Mixer)
 Singleton {
     id: root
 

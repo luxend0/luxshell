@@ -8,6 +8,9 @@ import qs.services
 IpcHandler {
     target: "luxshell"
 
+    // touching CcNav creates its IPC target "controlcenter" at shell start, not on first open
+    Component.onCompleted: CcNav.pending = ""
+
     function toggle(panel: string): void {
         Ui.toggle(panel);
     }
@@ -38,6 +41,7 @@ IpcHandler {
             "theme": Theme.name,
             "themes": Themes.names,
             "panels": Panels.ids,
+            "controlcenter": CcNav.open ? (CcNav.page || "main") : "",
             "settings": Settings.path,
             "window": Hypr.hasWindow ? `${Hypr.appId}: ${Hypr.title}` : "",
             "net": `${Net.kind} ${Net.bars}`,
