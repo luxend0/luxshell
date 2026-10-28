@@ -4,6 +4,8 @@
 // tools/media-clicktest.sh; vp.xml is the minimal wlr-virtual-pointer-unstable-v1 subset.
 //   vclick <wayland-display> click          press+release
 //   vclick <wayland-display> drag DX        press, move DX px in steps, release
+//   vclick <wayland-display> wiggle         only the 1 px motion: delivers enter/leave after a
+//                                           hyprctl cursor warp (which sends no motion itself)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +21,7 @@ static void reg(void *d, struct wl_registry *r, uint32_t name, const char *iface
 static void unreg(void *d, struct wl_registry *r, uint32_t n) {}
 static const struct wl_registry_listener rl = { reg, unreg };
 int main(int argc, char **argv) {
-    if (argc < 3) { fprintf(stderr, "usage: vclick <display> click|drag DX\n"); return 1; }
+    if (argc < 3) { fprintf(stderr, "usage: vclick <display> click|drag DX|wiggle\n"); return 1; }
     const char *real = getenv("REAL_WAYLAND_DISPLAY");
     if (!real || !strcmp(real, argv[1])) { fprintf(stderr, "refusing: set REAL_WAYLAND_DISPLAY and use the sandbox display\n"); return 2; }
     struct wl_display *dpy = wl_display_connect(argv[1]);
@@ -34,6 +36,7 @@ int main(int argc, char **argv) {
     zwlr_virtual_pointer_v1_motion(p, t++, wl_fixed_from_int(1), 0); zwlr_virtual_pointer_v1_frame(p);
     zwlr_virtual_pointer_v1_motion(p, t++, wl_fixed_from_int(-1), 0); zwlr_virtual_pointer_v1_frame(p);
     wl_display_roundtrip(dpy); usleep(50000);
+    if (!strcmp(argv[2], "wiggle")) { zwlr_virtual_pointer_v1_destroy(p); wl_display_roundtrip(dpy); wl_display_disconnect(dpy); return 0; }
     zwlr_virtual_pointer_v1_button(p, t++, 0x110, 1); zwlr_virtual_pointer_v1_frame(p);
     wl_display_roundtrip(dpy); usleep(60000);
     if (!strcmp(argv[2], "drag") && argc > 3) {
