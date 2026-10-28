@@ -5,6 +5,7 @@ set -u
 H=$HOME/.config/hypr
 cp "$H/hyprland.lua.bak-luxshell" "$H/hyprland.lua"
 cp "$H/luxos/keybinds.lua.bak-luxshell" "$H/luxos/keybinds.lua"
+cp "$HOME/.config/ambxst/config/dock.json.bak-luxshell" "$HOME/.config/ambxst/config/dock.json"
 hyprctl eval 'hl.env("AMBXST_LUXSHELL", "")' >/dev/null
 for pid in $(pgrep -f '^qs -c luxshell'); do kill "$pid"; done
 ambxst quit >/dev/null 2>&1; sleep 1

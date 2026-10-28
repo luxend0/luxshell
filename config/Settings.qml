@@ -35,6 +35,7 @@ Singleton {
     readonly property string fontFamily: adapter.fontFamily
     readonly property int fontSize: adapter.fontSize
     readonly property real animationSpeed: adapter.animationSpeed
+    readonly property real uiScale: adapter.uiScale
     readonly property string terminal: adapter.terminal
     readonly property string searchEngine: adapter.searchEngine
     readonly property bool webResults: adapter.webResults
@@ -93,6 +94,7 @@ Singleton {
             property string fontFamily: "Inter" // Theme.fontFamily, every text of the shell
             property int fontSize: 15 // px; Theme.fontScale = fontSize / 15 (settings app text)
             property real animationSpeed: 1 // divides every animation duration (config/Motion ms())
+            property real uiScale: 0.85 // whole shell, applied at start by tools/run.sh (QT_SCALE_FACTOR); 0.85 = video size on a 27" QHD at luxend's 31.5" (93 PPI)
             property string terminal: "kitty" // launcher "> cmd" and Terminal=true apps (services/Apps)
             property string searchEngine: "duckduckgo" // launcher web search (services/SearchEngines)
             property bool webResults: true // web search row under every launcher query

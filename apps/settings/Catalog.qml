@@ -303,6 +303,18 @@ Singleton {
                     "title": "",
                     "options": [
                         {
+                            "id": "uiScale",
+                            "kind": "slider",
+                            "label": "Interface scale (restart)",
+                            "keywords": "size scale zoom bigger smaller dpi interface",
+                            "min": 0.6,
+                            "max": 1.2,
+                            "step": 0.05,
+                            "value": () => Settings.uiScale,
+                            "set": v => Settings.set("uiScale", v),
+                            "format": v => `${Math.round(v * 100)} %`
+                        },
+                        {
                             "id": "animationSpeed",
                             "kind": "slider",
                             "label": "Animation speed",
