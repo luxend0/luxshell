@@ -6,11 +6,13 @@
 //   services/  Hypr, Clock, Net, Audio, Notifs, Apps, Tray - singletons, read only except explicit actions
 //   island/    IslandWindow (layer surface) > Island (morph container) > BarContent | PanelHost
 //   panels/    PanelBase contract + one file per panel
+//   background/ WallpaperLayer (background layer surface per screen, opt-in)
 //   widgets/   Icon/Icons (Lucide), Txt, MorphText, IconButton, Anim
 import QtQuick
 import Quickshell
 import qs.core
 import qs.island
+import qs.background
 
 ShellRoot {
     Variants {
@@ -20,4 +22,7 @@ ShellRoot {
     }
 
     Ipc {}
+
+    // wallpaper surface (only with LUXSHELL_WALLPAPER=1 / Settings.wallpaperLayer), theme export
+    WallpaperLayer {}
 }

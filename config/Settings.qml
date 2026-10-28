@@ -14,6 +14,10 @@ Singleton {
     // read-only mirrors; change via set()
     readonly property string theme: adapter.theme
     readonly property string accent: adapter.accent
+    readonly property string wallpaper: adapter.wallpaper
+    readonly property list<string> wallpaperDirs: adapter.wallpaperDirs
+    readonly property bool wallpaperLayer: adapter.wallpaperLayer
+    readonly property bool themeExport: adapter.themeExport
 
     function set(key: string, value: var): bool {
         if (adapter[key] === undefined) {
@@ -46,6 +50,10 @@ Singleton {
             id: adapter
             property string theme: "noir"
             property string accent: "" // "" = theme accent, else #rrggbb
+            property string wallpaper: "" // absolute path of the applied wallpaper (image or video)
+            property list<string> wallpaperDirs: ["~/Pictures/Wallpapers", "~/.local/share/luxos"] // read only, searched 4 levels deep
+            property bool wallpaperLayer: false // luxshell paints the wallpaper itself (also LUXSHELL_WALLPAPER=1); off = Ambxst does
+            property bool themeExport: true // write the applied theme to ~/.cache/luxshell (kitty, gtk.css, palette.json)
         }
     }
 }
