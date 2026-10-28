@@ -29,6 +29,6 @@ Item {
         size: root.wm.systemIconSize + (root.h.systemIconSize - root.wm.systemIconSize) * root.t
         color: root.kind === "power" ? Theme.danger : Theme.text
         restOpacity: root.kind === "power" ? 0.85 : 0.6
-        onClicked: Ui.toggle(root.kind === "power" ? "powermenu" : "settings")
+        onClicked: Ui.toggle(root.kind === "power" ? "power" : "settings") // "power" = panels/PowerMenu (also ipc toggle power)
     }
 }

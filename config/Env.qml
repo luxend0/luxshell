@@ -33,6 +33,8 @@ import Quickshell
 //                         default path is never written, only a file named here
 //   LUXSHELL_SOUND_TARGET PipeWire sink for the notification sound (pw-play --target); plays even
 //                         with LUXSHELL_DRYRUN=1 (tests on a null sink), services/Notifs
+//   LUXSHELL_FAKE_UPGRADES  power menu restart line (services/Power): a number = packages upgraded
+//                         since boot, "kernel" = running kernel replaced on disk (screenshots)
 //   LUXSHELL_FAKE_WEATHER  wttr.in answer "%x|%t|%C" (e.g. "m|+12°C|Partly cloudy") for the island's
 //                         weather widget instead of asking the network (services/Weather)
 Singleton {

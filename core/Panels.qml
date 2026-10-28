@@ -79,6 +79,12 @@ Singleton {
                 "component": mediaPanel,
                 "kind": "panel"
             },
+            // power menu (services/Power), opened from the red power button of the hover island
+            // or ipc toggle power (Super+Esc)
+            "power": {
+                "component": powerMenu,
+                "kind": "panel"
+            },
             // own window (FloatingWindow), Ui.open/toggle hand it to window.show()/toggle()
             "settings": {
                 "window": SettingsApp,
@@ -186,5 +192,9 @@ Singleton {
     Component {
         id: notificationCenter
         NotificationCenter {}
+    }
+    Component {
+        id: powerMenu
+        PowerMenu {}
     }
 }
