@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import qs.panels
 import qs.services
+import qs.apps.settings
 
 // Panel registry: id -> component + kind. The island knows nothing else about
 // panels; each panel reports its own size/radius at runtime (panels/PanelBase.qml).
@@ -13,6 +14,8 @@ import qs.services
 //
 //   kind "panel"    modal: focus grab + exclusive keyboard, Esc / click outside closes
 //   kind "overlay"  transient (OSD): no focus, auto-hides, outranks hover but not panels
+//   kind "window"   own toplevel outside the island (settings app): { window: singleton
+//                   with show(page) / toggle() }, never shown by the island
 //
 // Adding a panel = new file in panels/ (root: PanelBase) + an entry and a Component here.
 // Components are compiled with the shell (typos fail at start) and instantiated
@@ -68,6 +71,11 @@ Singleton {
             "media": {
                 "component": mediaPanel,
                 "kind": "panel"
+            },
+            // own window (FloatingWindow), Ui.open/toggle hand it to window.show()/toggle()
+            "settings": {
+                "window": SettingsApp,
+                "kind": "window"
             }
         })
 
@@ -96,6 +104,8 @@ Singleton {
 
     Component.onCompleted: {
         for (const id of ids) {
+            if (!entries[id].component)
+                continue; // windows have no island size
             const probe = entries[id].component.createObject(null, {
                 "probe": true
             });

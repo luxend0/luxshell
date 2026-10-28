@@ -38,6 +38,10 @@ Singleton {
             console.info(`luxshell: no panel "${id}" registered`);
             return;
         }
+        if (Panels.kind(id) === "window") { // own toplevel (settings app), not part of the island
+            Panels.entries[id].window.show("");
+            return;
+        }
         if (Panels.kind(id) === "overlay") {
             flash(id, 0, screen);
             return;
@@ -47,6 +51,10 @@ Singleton {
     }
 
     function toggle(id, screen) {
+        if (Panels.kind(id) === "window") {
+            Panels.entries[id].window.toggle();
+            return;
+        }
         const where = screen === undefined ? focusedScreen() : screen;
         if (panel === id && (panelScreen === "" || panelScreen === where))
             close();

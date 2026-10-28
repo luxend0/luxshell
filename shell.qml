@@ -16,6 +16,7 @@ import qs.core
 import qs.island
 import qs.background
 import qs.lock
+import qs.apps.settings
 
 ShellRoot {
     Variants {
@@ -31,4 +32,6 @@ ShellRoot {
 
     // session lock (ipc call luxshell lock), one surface per screen
     LockScreen {}
+    // settings app window (apps/settings), created while open
+    SettingsHost {}
 }

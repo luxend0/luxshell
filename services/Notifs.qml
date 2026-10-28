@@ -257,7 +257,9 @@ Singleton {
 
     // on-screen time; every duration goes through Motion.ms (LUXSHELL_SLOWMO)
     function duration(e: var): int {
-        return Motion.ms(e.urgency === 2 ? 9000 : e.urgency === 0 || e.transient ? 3500 : 5000);
+        // seconds from the settings app (Notifications page); slow motion applies, animation speed does not
+        const s = e.urgency === 2 ? Settings.notifTimeoutCritical : e.urgency === 0 || e.transient ? Settings.notifTimeoutLow : Settings.notifTimeout;
+        return Math.round(Math.max(1, s) * 1000 * Motion.slowmo);
     }
 
     function arrive(e: var): void {

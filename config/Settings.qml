@@ -24,6 +24,20 @@ Singleton {
     readonly property string mediaGlow: adapter.mediaGlow
     readonly property bool lockAvatar: adapter.lockAvatar
     readonly property string lockPam: adapter.lockPam
+    // settings app (apps/settings)
+    readonly property int workspaceCount: adapter.workspaceCount
+    readonly property int hoverHold: adapter.hoverHold
+    readonly property string clockFormat: adapter.clockFormat
+    readonly property string dateFormat: adapter.dateFormat
+    readonly property string fontFamily: adapter.fontFamily
+    readonly property int fontSize: adapter.fontSize
+    readonly property real animationSpeed: adapter.animationSpeed
+    readonly property string terminal: adapter.terminal
+    readonly property string searchEngine: adapter.searchEngine
+    readonly property bool webResults: adapter.webResults
+    readonly property real notifTimeout: adapter.notifTimeout
+    readonly property real notifTimeoutLow: adapter.notifTimeoutLow
+    readonly property real notifTimeoutCritical: adapter.notifTimeoutCritical
 
     function set(key: string, value: var): bool {
         if (adapter[key] === undefined) {
@@ -66,6 +80,20 @@ Singleton {
             property string mediaGlow: "soft" // media panel glow from the cover: soft (muted colour) | color | mono | off
             property bool lockAvatar: false // lock screen: user picture (~/.face, AccountsService) instead of the person glyph (video)
             property string lockPam: "login" // lock screen PAM service in /etc/pam.d; "login" keeps pam_faillock (3 misses = 10 min lockout, like hyprlock). "" = <shell>/pam/luxshell-lock (no faillock, unlimited guesses)
+            // settings app (apps/settings/Catalog.qml lists every option with its consumer)
+            property int workspaceCount: 5 // island capsules (services/Hypr count), 2..6
+            property int hoverHold: 160 // ms the pointer may leave the island before it collapses
+            property string clockFormat: "24h" // "24h" | "12h" | "12h-ampm" (services/Clock)
+            property string dateFormat: "ddd, MMM d" // Qt date format of the hover date (services/Clock)
+            property string fontFamily: "Inter" // Theme.fontFamily, every text of the shell
+            property int fontSize: 15 // px; Theme.fontScale = fontSize / 15 (settings app text)
+            property real animationSpeed: 1 // divides every animation duration (config/Motion ms())
+            property string terminal: "kitty" // launcher "> cmd" and Terminal=true apps (services/Apps)
+            property string searchEngine: "duckduckgo" // launcher web search (services/SearchEngines)
+            property bool webResults: true // web search row under every launcher query
+            property real notifTimeout: 5 // s a normal notification peek stays (services/Notifs)
+            property real notifTimeoutLow: 3.5 // s, low urgency and transient
+            property real notifTimeoutCritical: 9 // s, critical
         }
     }
 }
