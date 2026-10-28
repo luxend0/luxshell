@@ -112,12 +112,30 @@ Item {
     }
 
     // ---- hover only: top row rides the island edges -------------------------
+    // while a player has a track the media chip takes the window title's slot (cross-fade)
+    property real mediaIn: Media.hasTrack ? 1 : 0
+    Behavior on mediaIn {
+        Anim {
+            ms: Theme.media.swap
+        }
+    }
+
     WindowLabel {
         textOpacity: Motion.smooth(bar.pw, bar.reveal.topText)
-        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon)
+        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon) * (1 - bar.mediaIn)
         visible: opacity > 0.001
         x: bar.mix(bar.h.topStartLeft, bar.h.padLeft, bar.pw)
         y: notif.cy - height / 2
+    }
+
+    MediaLabel {
+        textOpacity: Motion.smooth(bar.pw, bar.reveal.topText)
+        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon) * bar.mediaIn
+        visible: opacity > 0.001
+        enabled: bar.mediaIn > 0.5
+        x: bar.mix(bar.h.topStartLeft, bar.h.padLeft, bar.pw)
+        y: notif.cy - height / 2
+        onOpenRequested: Ui.open("media", bar.screen ? bar.screen.name : undefined)
     }
 
     NotifStatus {

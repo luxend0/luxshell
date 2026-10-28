@@ -385,4 +385,71 @@ Singleton {
         readonly property color actionHover: root.mix(root.island, root.text, 0.2)
         readonly property color separator: root.mix(root.island, root.text, 0.1)
     }
+
+    // ---- media (services/Media, island/bar/MediaLabel, panels/MediaPanel) ------------------
+    // Collapsed island: unchanged (video). Hover: the chip replaces the window title in row 1
+    // while a player has a track (same slot, same type as the title). Click on the chip opens
+    // the media panel; it shares width and radius with the control center and the launcher.
+    readonly property QtObject media: QtObject {
+        // hover chip
+        readonly property real chipCover: 24
+        readonly property real chipCoverRadius: 6
+        readonly property real chipGap: 11          // cover -> title, like icon -> window title
+        readonly property real chipArtistGap: 9     // title -> artist on one line
+        readonly property real chipMaxWidth: 296     // ends ~40 px before the clock group (hover)
+        readonly property real chipButton: 26        // play/pause disc (prev/next join on chip hover)
+        readonly property real chipGlyph: 12
+        readonly property real chipButtonsGap: 8
+        readonly property real chipPad: 8            // highlight around the chip on hover
+        readonly property int swap: 260              // window title <-> chip cross-fade
+        readonly property int reveal: 200            // prev/next on chip hover
+
+        // panel (686 x 236, radius as the control center)
+        readonly property int width: 686
+        readonly property int height: 236
+        readonly property int emptyHeight: 128
+        readonly property int radius: 38
+        readonly property real pad: 24
+        readonly property real cover: 188
+        readonly property real coverRadius: 20
+        readonly property real columnGap: 28
+        readonly property real pillHeight: 28
+        readonly property real pillIcon: 16
+        readonly property real pillSize: 14
+        readonly property real pillPad: 11
+        readonly property real titleY: 78            // cap centres from the panel top
+        readonly property real artistY: 106
+        readonly property real titleSize: 24
+        readonly property real artistSize: 17
+        readonly property real trackY: 136           // seek track centre
+        readonly property real trackHeight: 6
+        readonly property real trackHover: 10
+        readonly property real timeY: 156
+        readonly property real timeSize: 13
+        readonly property real controlsY: 190        // centre of the transport row
+        readonly property real playDisc: 52
+        readonly property real playGlyph: 20
+        readonly property real skipDisc: 42
+        readonly property real skipGlyph: 20
+        readonly property real skipGap: 14
+        readonly property real volumeWidth: 120
+        readonly property real volumeIcon: 18
+        readonly property int coverFade: 320         // cover cross-fade on a new track
+        readonly property int enter: 420             // cover settles while the panel opens
+        // glow: a blurred copy of the cover behind it, plus a faint wash over the panel.
+        // Both are darkened (brightness shift), so bright covers glow moderately and dark
+        // ones barely: the island stays black at its edges.
+        readonly property real glowSpread: 1.42      // halo size / cover size
+        readonly property real glowOpacity: 0.55
+        readonly property real glowBrightness: -0.12
+        readonly property real washSpread: 1.0       // wash size / panel width
+        readonly property real washOpacity: 0.22
+        readonly property real washBrightness: -0.3
+        readonly property var glowSaturation: ({ "soft": -0.45, "color": 0, "mono": -1 })
+        readonly property color track: root.mix(root.island, root.text, 0.17)
+        readonly property color pill: root.mix(root.island, root.text, 0.1)
+        readonly property color pillHover: root.mix(root.island, root.text, 0.16)
+        readonly property color chipHover: root.mix(root.island, root.text, 0.09)
+        readonly property color skipHover: root.mix(root.island, root.text, 0.1)
+    }
 }

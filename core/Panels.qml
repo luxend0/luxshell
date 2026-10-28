@@ -59,6 +59,11 @@ Singleton {
             "wallpaper": {
                 "component": wallpaperPicker,
                 "kind": "panel"
+            },
+            // now playing (services/Media), opened from the media chip of the hover island
+            "media": {
+                "component": mediaPanel,
+                "kind": "panel"
             }
         })
 
@@ -132,5 +137,9 @@ Singleton {
     Component {
         id: wallpaperPicker
         WallpaperPicker {}
+    }
+    Component {
+        id: mediaPanel
+        MediaPanel {}
     }
 }
