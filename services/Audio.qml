@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
+import qs.services
 
 // Default sink volume (Pipewire). Reading is passive; step() is the only writer.
 Singleton {
@@ -16,7 +17,9 @@ Singleton {
     function step(delta: real): void {
         if (!ready)
             return;
-        sink.audio.volume = Math.max(0, Math.min(1, sink.audio.volume + delta));
+        const v = Math.max(0, Math.min(1, sink.audio.volume + delta));
+        if (Exec.allow(`volume ${Math.round(v * 100)} %`)) // LUXSHELL_DRYRUN: log only
+            sink.audio.volume = v;
     }
 
     PwObjectTracker {

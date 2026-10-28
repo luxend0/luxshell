@@ -26,6 +26,10 @@ IpcHandler {
     function flash(panel: string, ms: int): void {
         Ui.flash(panel, ms);
     }
+    // session lock (keybind, hypridle lock_cmd); unlocking only through the password
+    function lock(): void {
+        Lock.lock();
+    }
     function theme(name: string): void {
         if (Themes.resolve(name) !== name)
             console.warn(`luxshell: unknown theme "${name}"`);
@@ -46,7 +50,9 @@ IpcHandler {
             "window": Hypr.hasWindow ? `${Hypr.appId}: ${Hypr.title}` : "",
             "net": `${Net.kind} ${Net.bars}`,
             "volume": Audio.ready ? Math.round(Audio.volume * 100) : -1,
-            "notifications": Notifs.count
+            "notifications": Notifs.count,
+            "locked": Lock.locked,
+            "lock": Lock.phase
         });
     }
 }

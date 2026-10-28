@@ -1,0 +1,17 @@
+#%PAM-1.0
+# luxshell lock screen (services/Lock.qml, PamContext with configDirectory = <shell>/pam).
+#
+# Same password check as /etc/pam.d/system-auth on this machine (systemd-homed first,
+# then pam_unix via the setgid unix_chkpwd helper), WITHOUT pam_faillock: with the
+# defaults of /etc/security/faillock.conf (deny=3, unlock_time=600) three typos on the
+# lock screen would lock the account for 10 minutes - including this very lock screen
+# and sudo. pam_unix keeps its ~2 s delay after a wrong password.
+#
+# The system stack instead: Settings "lockPam": "login" (reads /etc/pam.d/login).
+
+-auth      [success=2 default=ignore]  pam_systemd_home.so
+auth       [success=1 default=ignore]  pam_unix.so          try_first_pass nullok
+auth       requisite                   pam_deny.so
+auth       required                    pam_permit.so
+
+account    required                    pam_unix.so

@@ -385,4 +385,78 @@ Singleton {
         readonly property color actionHover: root.mix(root.island, root.text, 0.2)
         readonly property color separator: root.mix(root.island, root.text, 0.1)
     }
+
+    // ---- lock screen (ref/11, measured 1:1 at 2560x1440) ------------------------
+    // Date over a huge clock at the top, user block (avatar, name, hint) at the bottom,
+    // status glyphs top right, all over the blurred + darkened wallpaper (lock/*).
+    // Text is placed by BASELINE; the user block counts from the BOTTOM edge, so taller
+    // screens keep both groups at their edge, lower ones get the whole layout scaled
+    // (lock/LockSurface: k = height / 1440). Colours are Theme.text at an alpha
+    // (measured over the ~#101010 backdrop), so themes tint the lock screen too.
+    readonly property QtObject lock: QtObject {
+        function fg(alpha: real): color {
+            return Qt.rgba(root.text.r, root.text.g, root.text.b, alpha);
+        }
+        readonly property string family: "Inter Display" // optical size for large type (SF Pro Display in the video)
+        readonly property real dateSize: 34            // "Sunday, October 25": cap height 24.5, ink 303 wide
+        readonly property int dateWeight: Font.Medium
+        readonly property real dateSpacing: 0.3
+        readonly property real dateBaseline: 198
+        readonly property real dateAlpha: 0.84         // ~#c8c8c8
+        readonly property real clockSize: 190          // "21:06": digits 142 high, stems 24, ink 446 wide
+        readonly property int clockWeight: Font.DemiBold
+        readonly property real clockSpacing: -1.2
+        readonly property real clockBaseline: 380.5
+        readonly property real clockAlpha: 0.86        // ~#cdcdcd
+        readonly property real avatarSize: 79          // disc centre 1154 = 286 above the bottom
+        readonly property real avatarCenter: 286
+        readonly property real avatarFill: 0.15        // white over the backdrop (~#343434)
+        readonly property real avatarRing: 0.3
+        readonly property real nameSize: 26            // "user0": figures 18.5 high, ink 68 wide
+        readonly property int nameWeight: Font.DemiBold
+        readonly property real nameSpacing: -0.6
+        readonly property real nameBaseline: 196       // y 1244
+        readonly property real nameAlpha: 0.96
+        readonly property real hintSize: 20            // "Press Any Key to Enter Password": cap 15, ink 306 wide
+        readonly property int hintWeight: Font.DemiBold
+        readonly property real hintSpacing: -0.35
+        readonly property real hintBaseline: 138       // y 1302
+        readonly property real hintAlpha: 0.54         // ~#868686
+        // password pill: takes the hint's place once a key is pressed or the screen clicked
+        readonly property real pillWidth: 264
+        readonly property real pillHeight: 40
+        readonly property real pillCenter: 142         // pill centre above the bottom (hint line centre)
+        readonly property real pillFill: 0.13
+        readonly property real pillStroke: 0.1
+        readonly property real pillTextSize: 17
+        readonly property real dotSize: 9
+        readonly property real dotGap: 7
+        readonly property real capsSize: 20            // Lucide arrow-big-up at the right end of the pill
+        readonly property real noteSize: 16            // caps lock / PAM message under the pill
+        readonly property real noteBaseline: 92
+        readonly property real shake: 14               // px, first swing of the error shake
+        // status glyphs (top right): battery x 2449..2487 (volume glyph without battery), Wi-Fi 2506..2526
+        readonly property real statusY: 29
+        readonly property real statusRight: 34
+        readonly property real statusGap: 19
+        readonly property real batteryWidth: 34
+        readonly property real batteryHeight: 17
+        readonly property real wifiWidth: 21
+        readonly property real wifiHeight: 17.5
+        readonly property real volumeSize: 22
+        // backdrop
+        readonly property int blurMax: 64
+        readonly property real blur: 1.0
+        readonly property real dim: 0.55               // dimColor over the blurred wallpaper
+        readonly property color dimColor: "#101010"     // lifts pure black a little (ref/11 never goes below ~#080808)
+        readonly property real saturation: -0.35
+        // motion (Motion.ms applies)
+        readonly property int lockIn: 700              // backdrop blurs + darkens, content settles
+        readonly property int contentDelay: 120
+        readonly property real rise: 26                // px the clock group slides down into place
+        readonly property int unlockOut: 380
+        readonly property int pillIn: 240
+        readonly property int idleMs: 12000            // empty field falls back to the hint
+        readonly property int forgetMs: 30000          // a half typed password is dropped after this
+    }
 }

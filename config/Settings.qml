@@ -21,6 +21,8 @@ Singleton {
     readonly property list<string> wallpaperDirs: adapter.wallpaperDirs
     readonly property bool wallpaperLayer: adapter.wallpaperLayer
     readonly property bool themeExport: adapter.themeExport
+    readonly property bool lockAvatar: adapter.lockAvatar
+    readonly property string lockPam: adapter.lockPam
 
     function set(key: string, value: var): bool {
         if (adapter[key] === undefined) {
@@ -60,6 +62,8 @@ Singleton {
             property list<string> wallpaperDirs: ["~/Pictures/Wallpapers", "~/.local/share/luxos"] // read only, searched 4 levels deep
             property bool wallpaperLayer: false // luxshell paints the wallpaper itself (also LUXSHELL_WALLPAPER=1); off = Ambxst does
             property bool themeExport: true // write the applied theme to ~/.cache/luxshell (kitty, gtk.css, palette.json)
+            property bool lockAvatar: false // lock screen: user picture (~/.face, AccountsService) instead of the person glyph (video)
+            property string lockPam: "" // lock screen PAM service in /etc/pam.d ("login" = system stack); "" = <shell>/pam/luxshell-lock
         }
     }
 }

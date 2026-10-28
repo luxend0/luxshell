@@ -1,0 +1,7 @@
+#%PAM-1.0
+# Fallback for any other service name in this directory (also silences libpam's
+# "no default config other" notice): deny everything.
+auth      required  pam_deny.so
+account   required  pam_deny.so
+password  required  pam_deny.so
+session   required  pam_deny.so
