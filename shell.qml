@@ -9,11 +9,13 @@
 //   panels/    PanelBase contract + one file per panel
 //   background/ WallpaperLayer (background layer surface per screen, opt-in)
 //   widgets/   Icon/Icons (Lucide), Txt, MorphText, IconButton, Anim
+//   lock/      LockScreen (WlSessionLock) > LockSurface per screen; state + PAM in services/Lock
 import QtQuick
 import Quickshell
 import qs.core
 import qs.island
 import qs.background
+import qs.lock
 
 ShellRoot {
     Variants {
@@ -26,4 +28,7 @@ ShellRoot {
 
     // wallpaper surface (only with LUXSHELL_WALLPAPER=1 / Settings.wallpaperLayer), theme export
     WallpaperLayer {}
+
+    // session lock (ipc call luxshell lock), one surface per screen
+    LockScreen {}
 }

@@ -22,6 +22,8 @@ Singleton {
     readonly property bool wallpaperLayer: adapter.wallpaperLayer
     readonly property bool themeExport: adapter.themeExport
     readonly property string mediaGlow: adapter.mediaGlow
+    readonly property bool lockAvatar: adapter.lockAvatar
+    readonly property string lockPam: adapter.lockPam
 
     function set(key: string, value: var): bool {
         if (adapter[key] === undefined) {
@@ -62,6 +64,8 @@ Singleton {
             property bool wallpaperLayer: false // luxshell paints the wallpaper itself (also LUXSHELL_WALLPAPER=1); off = Ambxst does
             property bool themeExport: true // write the applied theme to ~/.cache/luxshell (kitty, gtk.css, palette.json)
             property string mediaGlow: "soft" // media panel glow from the cover: soft (muted colour) | color | mono | off
+            property bool lockAvatar: false // lock screen: user picture (~/.face, AccountsService) instead of the person glyph (video)
+            property string lockPam: "login" // lock screen PAM service in /etc/pam.d; "login" keeps pam_faillock (3 misses = 10 min lockout, like hyprlock). "" = <shell>/pam/luxshell-lock (no faillock, unlimited guesses)
         }
     }
 }

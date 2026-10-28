@@ -19,6 +19,10 @@ import Quickshell
 //   LUXSHELL_FAKE_MIXER=1 demo app playback streams (services/Mixer)
 //   LUXSHELL_FAKE_MEDIA   1 = two demo players (Spotify playing, Firefox paused), single = one,
 //                         paused = Spotify paused; no MPRIS at all (services/Media)
+//   LUXSHELL_LOCK_TEST_PASSWORD  lock screen TEST MODE: the typed password is compared with
+//                         this value instead of PAM. Honoured ONLY together with
+//                         LUXSHELL_DRYRUN=1 (sandbox), ignored with a warning otherwise
+//                         (services/Lock.qml)
 Singleton {
     id: root
 
@@ -33,6 +37,7 @@ Singleton {
     readonly property string fakeClock: get("LUXSHELL_FAKE_CLOCK")
     readonly property string fakeMedia: get("LUXSHELL_FAKE_MEDIA")
     readonly property real slowmo: Math.max(0.1, parseFloat(get("LUXSHELL_SLOWMO")) || 1)
+    readonly property string lockTestPassword: get("LUXSHELL_LOCK_TEST_PASSWORD")
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
         if (own !== "")
