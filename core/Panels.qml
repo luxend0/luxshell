@@ -68,6 +68,12 @@ Singleton {
                 "component": overview,
                 "kind": "panel"
             },
+            // notification history (services/Notifs), opened from "All caught up" / the bell of
+            // the hover island or ipc toggle notifications
+            "notifications": {
+                "component": notificationCenter,
+                "kind": "panel"
+            },
             // now playing (services/Media), opened from the media chip of the hover island
             "media": {
                 "component": mediaPanel,
@@ -176,5 +182,9 @@ Singleton {
     Component {
         id: mediaPanel
         MediaPanel {}
+    }
+    Component {
+        id: notificationCenter
+        NotificationCenter {}
     }
 }

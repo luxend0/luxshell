@@ -153,12 +153,15 @@ Singleton {
     }
 
     // ---- control center (ref/08, ref/09, ref/09c; measured 1:1 at 2560x1440) ----------
-    // Main page: panel 686x686, cards 648 wide. Sub pages (network, Bluetooth, sound,
-    // display) are sheets over the dimmed main page, morphing out of the control
-    // that opened them (panels/ControlCenter.qml).
+    // Main page: panel 686 wide, cards 648 wide; it ends after the Display slider (the
+    // notifications moved to their own panel, Theme.nc), so it is 4 rows high. Sub pages
+    // (network, Bluetooth, sound, display) are sheets over the dimmed main page, morphing
+    // out of the control that opened them; the panel grows while a sheet needs more room
+    // (up to maxHeight) and shrinks back once it closes (panels/ControlCenter.qml).
     readonly property QtObject cc: QtObject {
         readonly property int width: 686
-        readonly property int height: 686
+        readonly property int height: 2 * pad + 4 * row + 3 * gapY   // 403: Wi-Fi .. Display
+        readonly property int maxHeight: 686     // with a sheet open: sheet.maxHeight + 2 * sheet.inset
         readonly property int radius: 38         // panel bottom corners
         readonly property int pad: 19            // panel edge -> cards, all four sides
         readonly property int gapX: 14           // tile | tile | round
@@ -174,11 +177,9 @@ Singleton {
         readonly property int subSize: 15
         readonly property int iconSize: 20
         readonly property int cardRadius: 28
-        readonly property int labelX: 20         // "Sound", "Display", "Notifications"
+        readonly property int labelX: 20         // "Sound", "Display"
         readonly property int labelY: 20
         readonly property int labelSize: 17
-        readonly property int captionSize: 15    // "Notifications"
-        readonly property int bodySize: 17       // "No notifications"
         readonly property int trackX: 15
         readonly property int trackY: 37
         readonly property int trackHeight: 32
@@ -194,7 +195,8 @@ Singleton {
         readonly property QtObject sheet: QtObject {
             readonly property int inset: 29          // panel edge -> sheet, left and right
             readonly property int radius: 30
-            readonly property int maxHeight: 628     // panel height - 2 * inset; taller content scrolls
+            readonly property int maxHeight: 628     // cc.maxHeight - 2 * inset; taller content scrolls
+            readonly property real shrinkAt: 0.35    // closing: the panel shrinks back once the sheet is this far home
             readonly property real dim: 0.55         // black over the main page while a sheet is open
             readonly property int headerHeight: 75   // header block (back, title, switch)
             readonly property real headerY: 44       // back disc, title and switch centre
@@ -689,5 +691,91 @@ Singleton {
         readonly property color caption: root.mix(root.island, root.textDim, 0.77)
         readonly property color placeholder: root.mix(root.island, root.textDim, 0.95)
         readonly property color ring: root.textSecondary                                    // keyboard focus
+    }
+
+    // ---- notification center (panels/NotificationCenter.qml; no video frame) ----------------
+    // Drawn in the control center's language: same width (CC / launcher <-> center only morph
+    // the height), black panel, cards with the CC radius and 1px outline, Inter, monochrome.
+    // Header line: title + count left, Focus switch + "Clear all" right. Below, one group
+    // per app: header row (icon, name, count, fold chevron, clear x) and its cards; a folded
+    // group shows the newest card with the older ones as edges behind it (stack).
+    readonly property QtObject nc: QtObject {
+        readonly property int width: 686           // = Theme.cc.width
+        readonly property int maxHeight: 760       // taller lists scroll
+        readonly property int emptyHeight: 252     // header + "All caught up"
+        readonly property int radius: 38           // = Theme.cc.radius
+        readonly property int pad: 19              // panel edge -> cards (= cc)
+        readonly property int headerHeight: 80     // title line; the list starts below it
+        readonly property real headerY: 41         // title, switch and pill centre
+        readonly property int titleX: 25           // = card edge + 6 (group icons share it)
+        readonly property int titleSize: 22        // = sheet title
+        readonly property int countGap: 10
+        readonly property int labelSize: 15       // "Focus"
+        readonly property int labelGap: 12         // "Focus" -> switch
+        readonly property int controlsGap: 16      // switch -> "Clear all"
+        readonly property int pillHeight: 34
+        readonly property int groupHeader: 38      // header row; its centre line at groupY
+        readonly property real groupY: 17
+        readonly property int groupIcon: 22
+        readonly property int groupIconX: 6        // from the card edge
+        readonly property int groupTextX: 38       // name, from the card edge
+        readonly property int groupSize: 15
+        readonly property int groupGap: 16         // last card of a group -> next header
+        readonly property int cardGap: 8
+        readonly property int cardRadius: 28       // = Theme.cc.cardRadius
+        readonly property int padX: 20
+        readonly property int padY: 16
+        readonly property int cardTitleSize: 17
+        readonly property int bodySize: 15
+        readonly property real bodyLineHeight: 1.12
+        readonly property int bodyLines: 2
+        readonly property int bodyLinesOpen: 16
+        readonly property int bodyGap: 4           // title line -> body
+        readonly property int timeSize: 13
+        readonly property int dot: 6               // unread when the center was opened
+        readonly property int chip: 26             // fold / unfold / dismiss discs
+        readonly property int chipIcon: 13
+        readonly property int thumb: 52            // wide image: at the right of the body
+        readonly property int thumbGap: 14
+        readonly property int lead: 40             // square image (avatar, cover): left of the text
+        readonly property int leadGap: 14
+        readonly property real leadAspect: 1.34    // up to this aspect (either way) an image counts as square
+        readonly property int imageMaxHeight: 260  // unfolded: full width image below the body
+        readonly property int imageRadius: 16
+        readonly property int imageGap: 12
+        readonly property int actionHeight: 32
+        readonly property int actionSize: 14
+        readonly property int actionGap: 8
+        readonly property int actionsTop: 12
+        readonly property int stackLayers: 2       // edges drawn behind a folded group
+        readonly property int stackPeek: 8         // visible part of each edge
+        readonly property int stackInset: 14       // each edge narrower by this per side
+        readonly property real swipeAt: 0.3        // drag beyond this part of the width dismisses
+        readonly property real edgeFade: 44        // list edge fades while more is off view
+        readonly property int listInset: 6         // scrolled rows end this far above the panel edge (clear of the corners)
+        readonly property real scrollbar: 3        // slim bar in the right gutter while the list scrolls
+        readonly property int emptyIcon: 30
+        readonly property int emptySize: 18
+        // motion (Motion.ms applies)
+        readonly property int move: 380            // rows slide, cards resize (= island panel morph)
+        readonly property int enter: 260           // a new row fades in
+        readonly property int enterDelay: 110      // ... after the rows below made room
+        readonly property int leave: 200
+        readonly property int fly: 170             // dismissed card flies out sideways
+        readonly property int stagger: 26          // ms between rows while the panel opens
+        readonly property real revealShift: 12
+        readonly property color card: root.surface
+        readonly property color cardHover: root.cc.hover
+        readonly property color stroke: root.cc.stroke
+        readonly property color strokeCritical: root.mix(root.cc.stroke, root.textDim, 0.55)
+        readonly property color layer1: root.mix(root.surface, root.island, 0.12)
+        readonly property color layer2: root.mix(root.surface, root.island, 0.35)
+        readonly property color layerStroke1: root.cc.stroke
+        readonly property color layerStroke2: root.mix(root.cc.stroke, root.island, 0.25)
+        readonly property color chipColor: root.cc.chipColor
+        readonly property color action: root.cc.chipColor
+        readonly property color headerHover: root.mix(root.island, root.surface, 0.8)
+        readonly property color ring: root.textSecondary
+        readonly property color scrollbarColor: root.mix(root.island, root.textDim, 0.6)
     }
 }

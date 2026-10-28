@@ -3,9 +3,10 @@ import qs.config
 import qs.core
 import qs.services
 
-// Main page, ref/08 without the light/dark button: row 1 Wi-Fi, Focus, lock;
-// row 2 Bluetooth and Game Mode sharing the full width; Sound and Display
-// sliders, notifications. Network, Bluetooth, Sound and Display open a sheet
+// Main page, ref/08 without the light/dark button and without the notifications card
+// (own panel: panels/NotificationCenter.qml): row 1 Wi-Fi, Focus, lock; row 2 Bluetooth
+// and Game Mode sharing the full width; Sound and Display sliders, then the panel ends
+// (Theme.cc.height). Network, Bluetooth, Sound and Display open a sheet
 // (openPage); the control that opened it hides while the sheet grows out of it.
 // Keyboard: arrows move spatially between controls, Tab in order (ControlCenter).
 FocusScope {
@@ -138,13 +139,5 @@ FocusScope {
         sliderEnabled: Brightness.ready
         onMoved: v => Brightness.setPrimary(v)
         onOpened: page.openPage("display", display)
-    }
-
-    NotificationsCard {
-        id: notifications
-        x: page.pad
-        y: page.pad + 4 * page.step
-        width: page.width - 2 * page.pad
-        height: page.height - y - page.pad
     }
 }

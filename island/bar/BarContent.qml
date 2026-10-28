@@ -146,6 +146,7 @@ Item {
         visible: opacity > 0.001
         x: bar.width - bar.mix(bar.h.topStartRight, bar.h.padRight, bar.pw) - width
         y: cy - height / 2
+        onOpenRequested: Ui.open("notifications", bar.screen ? bar.screen.name : undefined)
     }
 
     // ---- hover only: extras, last in and first out ---------------------------
