@@ -24,6 +24,14 @@ Doku https://quickshell.org/docs/.
 - Beispiele fuer gute Panels: `panels/Launcher.qml` (+ `panels/launcher/`), `panels/ControlCenter.qml`
   (+ `panels/controlcenter/`), `panels/ThemePicker.qml` (+ `panels/picker/`).
 
+## Settings (seit 2026-10-28)
+- Jede Option: Schluessel mit Default in `config/Settings.qml` (Praefix je Bereich: `island*`, `look*`,
+  `motion*`, `launcher*`, `notif*`, `cc*`, `media*`, `lock*`, `wallpaper*`, `keys*`, `integration*`),
+  Eintrag auf der Seite `apps/settings/pages/<Seite>.qml`, Konsument liest `Settings.x` (live).
+  Anleitung, Optionstypen, `setPath` fuer Objekte/Listen: `apps/settings/README.md`.
+- Alles wirkt sofort live, jede Option ist per Reset auf den Default zurueckzusetzen.
+- luxshell laeuft live mit `QT_SCALE_FACTOR=0.85` (tools/run.sh): in der Sandbox ebenso testen.
+
 ## Arbeitskopie
 `rsync -a --exclude candidates --exclude ref --exclude .git /home/luxend/.config/quickshell/luxshell/ /home/luxend/.config/quickshell/luxshell/candidates/<dein-name>/`
 und nur dort arbeiten. Neue Dateien frei; bestehende nur additiv (Registry-Eintrag, Block am Ende
@@ -37,7 +45,12 @@ von Theme.qml, neue Settings-Schluessel, ggf. eine Zeile in shell.qml) - im Beri
   `. $XDG_RUNTIME_DIR/luxsandbox/<name>.env; hyprctl dispatch 'hl.dsp.focus({monitor="HEADLESS-1"})'; qs -p <shell.qml> ipc call luxshell open <panel>`, dann `wtype`.
 - Settings/Cache per `LUXSHELL_CONFIG_DIR` / `LUXSHELL_CACHE_DIR` in einen eigenen Unterordner von
   `/tmp/claude-1000/-home-luxend/5b176542-b076-45ab-afbc-31639687e709/scratchpad/<name>/` (der Scratchpad ist geteilt).
-- Fuer Benachrichtigungen/D-Bus-Dienste: `sandbox.sh run <name> <dir> LUXSB_DBUS=1 ...` (eigener Bus).
+- Fuer Benachrichtigungen/D-Bus-Dienste und ALLES, was Hilfsprogramme mit GUI startet (zenity,
+  Dateidialoge, Portale): `sandbox.sh run <name> <dir> LUXSB_DBUS=1 GDK_DEBUG=no-portals ...` (eigener
+  Bus), sonst poppen Dialoge auf dem echten Desktop auf.
+- Mausklicks: `tools/vclick/` (Bauanleitung im Kopf von vclick.c, `REAL_WAYLAND_DISPLAY=wayland-1 vclick
+  <sandbox-display> click|drag DX|wiggle`), Zeiger setzen: `hyprctl dispatch "hl.dsp.cursor.move({ x = 5000+X, y = Y })"`
+  gegen die Sandbox-Instanz.
 - Immer `LUXSHELL_DRYRUN=1`. Am Ende IMMER `sandbox.sh stop <name>`.
 
 ## Verboten

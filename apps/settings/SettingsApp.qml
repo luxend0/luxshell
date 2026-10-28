@@ -14,9 +14,18 @@ import qs.core
 //   qs -c luxshell ipc call settings back | forward
 //   qs -c luxshell ipc call settings search <text>         open with the search filled in
 //   qs -c luxshell ipc call settings state
+//   qs -c luxshell ipc call settings get <key|path>         JSON of the value
+//   qs -c luxshell ipc call settings set <key|path> <json>  JSON value (a bare word = string; start an
+//                                                           array with a space: ' ["a", "b"]', the qs CLI splits [a,b])
+//   qs -c luxshell ipc call settings reset <key|path>
+//   qs -c luxshell ipc call settings resetPage <page>
+//   qs -c luxshell ipc call settings changed                 keys that differ from the default
+//   qs -c luxshell ipc call settings exportFile <path>      backup (Backup.qml)
+//   qs -c luxshell ipc call settings importFile <path>      replaces every preference
 //
-// Page ids: Catalog.pages (bar, clock, appearance, motion, launcher, notifications,
-// controlcenter, system).
+// Page ids: Catalog.pages (bar, media, clock, appearance, wallpaper, motion, launcher,
+// notifications, controlcenter, lockscreen, keybinds, integrations, system, demo);
+// empty ones are hidden.
 //
 // Before the first open a window rule for this window is registered in the running
 // Hyprland (hyprctl eval, like services/GameMode): floating, no border/shadow/blur,
@@ -38,6 +47,26 @@ Singleton {
 
     signal searchRequested   // window: focus the search field
     signal pageShown(string id)
+
+    // bottom toast of the window ("Reset 3 options  Undo"); undo: a function, a
+    // Settings.snapshot() to restore, or null (no Undo)
+    property string toastText: ""
+    property var toastUndo: null
+    property int toastSeq: 0
+    function toast(text: string, undo: var): void {
+        toastText = text;
+        toastUndo = undo ?? null;
+        toastSeq++;
+    }
+    function undoToast(): void {
+        if (typeof toastUndo === "function")
+            toastUndo();
+        else if (toastUndo)
+            Settings.restore(toastUndo);
+        toastUndo = null;
+        toastText = "";
+        toastSeq++;
+    }
 
     function show(id: string): void {
         if (id !== undefined && id !== "") {
@@ -145,6 +174,35 @@ Singleton {
             root.show("");
             root.query = text;
             root.searchRequested();
+        }
+        function get(path: string): string {
+            return JSON.stringify(Settings.get(path)) ?? "undefined";
+        }
+        function set(path: string, value: string): string {
+            let v;
+            try {
+                v = JSON.parse(value);
+            } catch (e) {
+                v = value;
+            }
+            return Settings.set(path, v) ? "ok" : "error (see log)";
+        }
+        function reset(path: string): string {
+            Settings.reset(path);
+            return Settings.isDefault(path) ? "ok" : "error (see log)";
+        }
+        function resetPage(page: string): string {
+            const p = Catalog.pages.find(x => x.id === page);
+            return p ? `reset ${Catalog.resetPage(p)}` : `no page "${page}"`;
+        }
+        function changed(): string {
+            return JSON.stringify(Settings.keys().filter(k => !Settings.isDefault(k)));
+        }
+        function exportFile(path: string): void {
+            Backup.exportTo(path);
+        }
+        function importFile(path: string): void {
+            Backup.importFrom(path);
         }
         function state(): string {
             return JSON.stringify({

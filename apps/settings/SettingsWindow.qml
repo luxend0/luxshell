@@ -11,10 +11,13 @@ import qs.widgets
 // Keys
 //   typing            search across all pages (results stay editable in place)
 //   Ctrl+F, /         search field         Esc   clear search, else close
-//   Up/Down           page (sidebar) or row (page)
+//   Up/Down           page (sidebar) or row (page); inside list/folder rows: the entries
+//   Shift+Up/Down     list rows: move the entry
 //   Tab, Shift+Tab    sidebar <-> page; Right/Enter in the sidebar enter the page
-//   Left/Right        slider, choice, swatch, switch; Left on other rows: sidebar
+//   Left/Right        slider, choice, swatch, switch, time, weekday; Left on other rows: sidebar
 //   Enter/Space       toggle / open / pick / edit       Alt+Left/Right  back/forward
+//   Delete/Backspace  remove the folder under the cursor, else reset the option to its default
+//   Ctrl+Backspace    reset the page (toast offers Undo)
 //   PgUp/PgDn, Home/End scroll                          Ctrl+W, Ctrl+Q  close
 // Mouse: everything clickable, sliders drag, wheel scrolls, back/forward buttons.
 FloatingWindow {
@@ -58,6 +61,16 @@ FloatingWindow {
         function openMenu(row: Item, opt: var): void {
             menu.show(row, opt);
         }
+        function openColor(row: Item, opt: var): void {
+            colorPop.show(row, opt);
+        }
+        function tip(item: Item, text: string): void {
+            if (text !== "")
+                tipItem.show(item, text);
+        }
+        function untip(item: Item): void {
+            tipItem.hide(item);
+        }
         function focusRow(i: int): void {
             win.zone = "content";
             win.focusIndex = i;
@@ -65,12 +78,17 @@ FloatingWindow {
         function focusRoot(): void {
             keys.forceActiveFocus();
         }
+        function revealRow(item: Item): void {
+            win.reveal(item);
+        }
     }
 
     onSectionsChanged: {
         focusIndex = 0;
         menu.close();
+        colorPop.close();
     }
+    onPageIndexChanged: revealSide()
 
     Connections {
         target: SettingsApp
@@ -84,19 +102,33 @@ FloatingWindow {
         }
     }
 
-    function moveFocus(d: int): void {
+    // tall rows (lists, folders) walk their entries first, then hand over to the next row
+    function moveFocus(d: int, mods: int): void {
         if (flatCount === 0)
             return;
-        focusIndex = Math.max(0, Math.min(flatCount - 1, focusIndex + d));
-        reveal(host.items[focusIndex]);
+        const cur = host.items[focusIndex];
+        if (cur && cur.navigate(d, mods ?? 0))
+            return reveal(cur);
+        const n = Math.max(0, Math.min(flatCount - 1, focusIndex + d));
+        if (n === focusIndex)
+            return;
+        focusIndex = n;
+        const row = host.items[n];
+        if (row)
+            row.enter(d);
+        reveal(row);
     }
 
-    // scroll the page so item (a row) is fully visible
+    // scroll the page so item (a row, or its entry under the cursor) is fully visible
     function reveal(item: Item): void {
         if (!item)
             return;
-        const p = item.mapToItem(flick.contentItem, 0, 0);
-        const top = p.y - 12, bottom = p.y + item.height + 12;
+        const r = item.focusRect ? item.focusRect() : {
+            "y": 0,
+            "h": item.height
+        };
+        const p = item.mapToItem(flick.contentItem, 0, r.y);
+        const top = p.y - 12, bottom = p.y + r.h + 12;
         if (top < flick.contentY)
             scrollTo(top);
         else if (bottom > flick.contentY + flick.height)
@@ -129,6 +161,10 @@ FloatingWindow {
             menu.key(event);
             return;
         }
+        if (colorPop.shown) {
+            colorPop.key(event);
+            return;
+        }
         if (alt && k === Qt.Key_Left)
             return SettingsApp.back();
         if (alt && k === Qt.Key_Right)
@@ -141,6 +177,11 @@ FloatingWindow {
             return;
         }
         const row = host.items[focusIndex];
+        if (ctrl && k === Qt.Key_Backspace) {
+            if (!searching)
+                header.resetPage();
+            return;
+        }
         switch (k) {
         case Qt.Key_Escape:
             if (searching)
@@ -162,7 +203,12 @@ FloatingWindow {
             if (zone === "sidebar")
                 goPage(k === Qt.Key_Down ? 1 : -1);
             else
-                moveFocus(k === Qt.Key_Down ? 1 : -1);
+                moveFocus(k === Qt.Key_Down ? 1 : -1, event.modifiers);
+            return;
+        case Qt.Key_Delete:
+        case Qt.Key_Backspace:
+            if (zone === "content" && row)
+                row.deleteKey();
             return;
         case Qt.Key_Right:
         case Qt.Key_Left:
@@ -247,9 +293,16 @@ FloatingWindow {
         }
     }
 
-    // any pointer movement hides the keyboard focus rings (on the content item: sees every child)
+    // any pointer movement hides the keyboard focus rings (on the content item: sees every child);
+    // content scrolling under a resting pointer is no movement
     HoverHandler {
-        onPointChanged: win.kb = false
+        property point last: Qt.point(-100, -100)
+        onPointChanged: {
+            const p = point.scenePosition;
+            if (Math.abs(p.x - last.x) + Math.abs(p.y - last.y) > 1)
+                win.kb = false;
+            last = p;
+        }
     }
 
     // ---- search field ------------------------------------------------------------
@@ -330,41 +383,74 @@ FloatingWindow {
     }
 
     // ---- sidebar -----------------------------------------------------------------
-    Rectangle {
-        id: highlight
-        x: win.g.sideX
-        y: Math.round(win.g.sideTop + Math.max(0, win.pageIndex) * win.g.sideStep)
-        width: win.g.sideWidth
-        height: win.g.sideRowHeight
-        radius: win.g.sideRadius
-        color: win.g.selected
-        opacity: win.searching ? 0 : 1
-        Behavior on y {
-            Anim {
-                ms: win.g.highlightMove
-            }
-        }
-        Behavior on opacity {
-            Anim {
-                ms: Theme.fadeOut
-            }
-        }
+    // scrolls once there are more pages than fit (the video's 11 do)
+    function revealSide(): void {
+        const max = Math.max(0, side.contentHeight - side.height);
+        const top = win.g.sideTop - side.y + Math.max(0, pageIndex) * win.g.sideStep;
+        let y = side.contentY;
+        if (top - 8 < y)
+            y = top - 8;
+        else if (top + win.g.sideRowHeight + 8 > y + side.height)
+            y = top + win.g.sideRowHeight + 8 - side.height;
+        side.contentY = Math.max(0, Math.min(max, y));
     }
 
-    Repeater {
-        model: Catalog.visiblePages
+    Flickable {
+        id: side
+        x: 0
+        y: win.g.pageTop
+        width: win.g.sidebarWidth
+        height: win.height - y
+        clip: true
+        contentWidth: width
+        contentHeight: win.g.sideTop - y + Catalog.visiblePages.length * win.g.sideStep + 14
+        boundsBehavior: Flickable.StopAtBounds
+        interactive: contentHeight > height && !menu.shown && !colorPop.shown
+        onHeightChanged: win.revealSide()
+        onContentHeightChanged: win.revealSide()
+        Behavior on contentY {
+            enabled: !side.dragging && !side.flicking
+            Anim {
+                ms: 180
+            }
+        }
 
-        SideItem {
-            required property var modelData
-            required property int index
+        Rectangle {
+            id: highlight
             x: win.g.sideX
-            y: Math.round(win.g.sideTop + index * win.g.sideStep)
-            page: modelData
-            current: !win.searching && index === win.pageIndex
-            ring: win.kb && win.zone === "sidebar" && !search.activeFocus && index === win.pageIndex
-            onClicked: {
-                keys.forceActiveFocus();
-                SettingsApp.navigate(modelData.id);
+            y: Math.round(win.g.sideTop - side.y + Math.max(0, win.pageIndex) * win.g.sideStep)
+            width: win.g.sideWidth
+            height: win.g.sideRowHeight
+            radius: win.g.sideRadius
+            color: win.g.selected
+            opacity: win.searching ? 0 : 1
+            Behavior on y {
+                Anim {
+                    ms: win.g.highlightMove
+                }
+            }
+            Behavior on opacity {
+                Anim {
+                    ms: Theme.fadeOut
+                }
+            }
+        }
+
+        Repeater {
+            model: Catalog.visiblePages
+
+            SideItem {
+                required property var modelData
+                required property int index
+                x: win.g.sideX
+                y: Math.round(win.g.sideTop - side.y + index * win.g.sideStep)
+                page: modelData
+                current: !win.searching && index === win.pageIndex
+                ring: win.kb && win.zone === "sidebar" && !search.activeFocus && index === win.pageIndex
+                onClicked: {
+                    keys.forceActiveFocus();
+                    SettingsApp.navigate(modelData.id);
+                }
             }
         }
     }
@@ -397,7 +483,7 @@ FloatingWindow {
         contentHeight: column.height + win.g.padBottom
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.VerticalFlick
-        interactive: !menu.shown
+        interactive: !menu.shown && !colorPop.shown
 
         Anim {
             id: scrollAnim
@@ -420,6 +506,7 @@ FloatingWindow {
             }
 
             PageHeader {
+                id: header
                 visible: !win.searching
                 page: win.page
             }
@@ -490,9 +577,25 @@ FloatingWindow {
         }
     }
 
+    Toast {
+        anchors.fill: parent
+    }
+
     Menu {
         id: menu
         anchors.fill: parent
         onClosed: keys.forceActiveFocus()
+    }
+
+    ColorPopover {
+        id: colorPop
+        anchors.fill: parent
+        host: win.host
+        onClosed: keys.forceActiveFocus()
+    }
+
+    Tip {
+        id: tipItem
+        anchors.fill: parent
     }
 }

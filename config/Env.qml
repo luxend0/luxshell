@@ -23,6 +23,8 @@ import Quickshell
 //                         this value instead of PAM. Honoured ONLY together with
 //                         LUXSHELL_DRYRUN=1 (sandbox), ignored with a warning otherwise
 //                         (services/Lock.qml)
+//   LUXSHELL_SETTINGS_DEMO=1  settings app shows the "Option types" page (every option kind,
+//                         apps/settings/pages/Demo.qml); hidden otherwise
 Singleton {
     id: root
 
@@ -38,6 +40,7 @@ Singleton {
     readonly property string fakeMedia: get("LUXSHELL_FAKE_MEDIA")
     readonly property real slowmo: Math.max(0.1, parseFloat(get("LUXSHELL_SLOWMO")) || 1)
     readonly property string lockTestPassword: get("LUXSHELL_LOCK_TEST_PASSWORD")
+    readonly property bool settingsDemo: get("LUXSHELL_SETTINGS_DEMO") === "1"
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
         if (own !== "")

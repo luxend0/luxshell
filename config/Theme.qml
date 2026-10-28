@@ -691,6 +691,38 @@ Singleton {
         readonly property color caption: root.mix(root.island, root.textDim, 0.77)
         readonly property color placeholder: root.mix(root.island, root.textDim, 0.95)
         readonly property color ring: root.textSecondary                                    // keyboard focus
+
+        // settings-base: reset buttons, popovers and the option kinds added after the video
+        readonly property int resetSize: 28          // per-option reset disc (only while changed)
+        readonly property int resetGap: 8            // reset disc -> control
+        readonly property int resetIconSize: 17
+        readonly property int pageResetHeight: 30    // "Reset page" in the header card's corner
+        readonly property int pageResetInset: 14
+        readonly property real blockLabelY: 26       // tall rows (list, folders, custom): label line
+        readonly property int blockTop: 50           // first content line under the label
+        readonly property int blockPad: 12           // under the last content line
+        readonly property int listRow: 46            // one entry of a list / folder row
+        readonly property int miniButton: 30         // up / down / remove squares
+        readonly property int miniRadius: 9
+        readonly property int menuMaxRows: 9         // longer dropdowns scroll (and get a filter)
+        readonly property int menuFilterHeight: 44
+        readonly property int fontMenuWidth: 360
+        readonly property int popover: 280           // colour picker width
+        readonly property int popoverPad: 14
+        readonly property int popoverRadius: 18
+        readonly property int svHeight: 168          // saturation / value square
+        readonly property int hueHeight: 14
+        readonly property int colourDisc: 24
+        readonly property int colourFieldWidth: 132
+        readonly property int timeWidth: 86
+        readonly property int day: 32                // weekday discs
+        readonly property int dayGap: 6
+        readonly property int toastHeight: 44
+        readonly property int toastBottom: 22
+        readonly property int tipPad: 10
+        readonly property int tipSize: 14
+        readonly property color danger: root.mix(root.danger, root.island, 0.15)
+        readonly property color tip: root.mix(root.island, root.surfaceHigh, 1.0)
     }
 
     // ---- notification center (panels/NotificationCenter.qml; no video frame) ----------------
