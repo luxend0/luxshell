@@ -237,6 +237,7 @@ Item {
         width: island.bw
         height: island.bh
         radius: island.br
+        panel: island.mode === "panel" // panel opacity (Settings look*)
 
         HoverHandler {
             onHoveredChanged: {

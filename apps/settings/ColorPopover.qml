@@ -278,6 +278,7 @@ Item {
                     id: hexField
                     width: parent.width - (resetDefault.visible ? resetDefault.width + 8 : 0)
                     host: root.host
+                    family: Theme.monoFamily
                     text: root.optValue === "" ? "" : root.optValue.toUpperCase()
                     placeholder: root.opt?.emptyLabel ?? "#rrggbb"
                     valid: t => /^#?[0-9a-fA-F]{6}$/.test(t.trim()) || (t.trim() === "" && (root.opt?.allowEmpty ?? false))

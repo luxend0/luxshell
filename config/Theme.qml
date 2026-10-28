@@ -36,7 +36,15 @@ Singleton {
     readonly property string fontFamily: Settings.fontFamily !== "" ? Settings.fontFamily : "Inter"
     // Settings "Font size" (15 px = 1): scales the settings app's text; modules
     // with sizes measured from the video keep them unless they multiply by it
-    readonly property real fontScale: Math.max(0.6, Math.min(1.6, Settings.fontSize / 15))
+    readonly property real fontScale: Math.max(0.6, Math.min(1.6, Settings.fontSize / 15)) * textScale
+    // Settings "Text size" (lookFontScale): every text size in the blocks below goes through
+    // tx(), so island, panels, OSD and lock follow it live (1 = sizes of the video)
+    readonly property real textScale: Math.max(0.7, Math.min(1.5, Settings.lookFontScale))
+    function tx(px: real): real {
+        return px * textScale;
+    }
+    // monospace text (launcher command/calculator line, hex fields); "" = the interface font
+    readonly property string monoFamily: Settings.lookMonoFont !== "" ? Settings.lookMonoFont : fontFamily
 
     // ---- secondary motion (widgets/Anim) ----------------------------------
     readonly property var curve: [0.33, 1.0, 0.68, 1.0, 1.0, 1.0] // easeOutCubic
@@ -45,20 +53,28 @@ Singleton {
     readonly property int fadeOut: 140       // hover discs
     readonly property int hoverHold: Settings.hoverHold // pointer may leave this long before collapsing (default 160)
 
+    // ---- shape (Settings look*, island/IslandShape) ------------------------
+    // "Corner radius" (lookRadiusScale): island, panel and card radii in the blocks below go
+    // through rad(), so they all follow one factor live (1 = video, 0 = square corners)
+    readonly property real radiusScale: Math.max(0, Math.min(2, Settings.lookRadiusScale))
+    function rad(px: real): real {
+        return px * radiusScale;
+    }
+
     // ---- island ----------------------------------------------------------
     // the layer surface is sized from the hover size and the largest panel
     // (Panels.maxWidth/maxHeight), see island/IslandWindow.qml
-    readonly property int earRadius: 8       // concave fillets where the island meets the screen edge
-    readonly property int panelRadius: 32
+    readonly property int earRadius: Settings.lookEars ? 8 : 0 // concave fillets where the island meets the screen edge (Settings.lookEars)
+    readonly property int panelRadius: Math.round(root.rad(32))
 
     readonly property QtObject collapsed: QtObject {
         readonly property int width: 316
         readonly property int height: 42
-        readonly property int radius: 20
+        readonly property int radius: Math.round(root.rad(20))
         readonly property real padLeft: 32
         readonly property real padRight: 32
         readonly property real centerY: 20       // content line (slightly above geometric centre)
-        readonly property real clockSize: 21
+        readonly property real clockSize: root.tx(21)
         readonly property real pillWidth: 8
         readonly property real pillHeight: 14
         readonly property real activeWidth: 12
@@ -76,20 +92,20 @@ Singleton {
     readonly property QtObject hover: QtObject {
         readonly property int width: 958
         readonly property int height: 100
-        readonly property int radius: 40
+        readonly property int radius: Math.round(root.rad(40))
         readonly property real padLeft: 45
         readonly property real padRight: 45
         readonly property real row1Y: 32
         readonly property real row2Y: 66
         readonly property real clockY: 48
-        readonly property real clockSize: 30
-        readonly property real dateSize: 19
+        readonly property real clockSize: root.tx(30)
+        readonly property real dateSize: root.tx(19)
         readonly property real dateGap: 12
-        readonly property real titleSize: 18
+        readonly property real titleSize: root.tx(18)
         readonly property real titleMaxWidth: 300
         readonly property real appIconSize: 22
         readonly property real appIconGap: 11
-        readonly property real notifSize: 18
+        readonly property real notifSize: root.tx(18)
         readonly property real bellSize: 20
         readonly property real pillWidth: 12
         readonly property real pillHeight: 21
@@ -123,25 +139,25 @@ Singleton {
         readonly property real lensX: 22
         readonly property real lensSize: 20
         readonly property real inputX: 60
-        readonly property real inputSize: 18
-        readonly property real modeSize: 15        // dim mode name at the right of the field
+        readonly property real inputSize: root.tx(18)
+        readonly property real modeSize: root.tx(15)        // dim mode name at the right of the field
         readonly property real inset: 20           // separator + rows, left and right
         readonly property int listTop: 96
         readonly property int padBottom: 22
         readonly property int rowHeight: 62
         readonly property int visibleRows: 6
-        readonly property real rowRadius: 10
+        readonly property real rowRadius: root.rad(10)
         readonly property real barX: 2             // selection bar inside the highlight
         readonly property real barWidth: 3
         readonly property real barHeight: 30
         readonly property real tileX: 16           // icon tile behind every icon
         readonly property real tileSize: 44
-        readonly property real tileRadius: 10
+        readonly property real tileRadius: root.rad(10)
         readonly property real iconSize: 28
         readonly property real glyphSize: 22       // Lucide glyph when a row has no app icon
         readonly property real textX: 74
-        readonly property real titleSize: 19
-        readonly property real subtitleSize: 15
+        readonly property real titleSize: root.tx(19)
+        readonly property real subtitleSize: root.tx(15)
         readonly property real titleBaseline: 27   // from the row top
         readonly property real subtitleBaseline: 47
         readonly property int highlightMove: 160
@@ -162,7 +178,7 @@ Singleton {
         readonly property int width: 686
         readonly property int height: 2 * pad + 4 * row + 3 * gapY   // 403: Wi-Fi .. Display
         readonly property int maxHeight: 686     // with a sheet open: sheet.maxHeight + 2 * sheet.inset
-        readonly property int radius: 38         // panel bottom corners
+        readonly property int radius: Math.round(root.rad(38))         // panel bottom corners
         readonly property int pad: 19            // panel edge -> cards, all four sides
         readonly property int gapX: 14           // tile | tile | round
         readonly property int gapY: 15           // between rows / cards
@@ -173,13 +189,13 @@ Singleton {
         readonly property int textX: 84          // tile left -> title / subtitle
         readonly property int titleY: 30         // cap centres inside a tile
         readonly property int subY: 51
-        readonly property int titleSize: 19
-        readonly property int subSize: 15
+        readonly property int titleSize: Math.round(root.tx(19))
+        readonly property int subSize: Math.round(root.tx(15))
         readonly property int iconSize: 20
-        readonly property int cardRadius: 28
+        readonly property int cardRadius: Math.round(root.rad(28))
         readonly property int labelX: 20         // "Sound", "Display"
         readonly property int labelY: 20
-        readonly property int labelSize: 17
+        readonly property int labelSize: Math.round(root.tx(17))
         readonly property int trackX: 15
         readonly property int trackY: 37
         readonly property int trackHeight: 32
@@ -194,7 +210,7 @@ Singleton {
         // sheet (ref/09 + ref/09c): coordinates relative to the sheet, sizes in px
         readonly property QtObject sheet: QtObject {
             readonly property int inset: 29          // panel edge -> sheet, left and right
-            readonly property int radius: 30
+            readonly property int radius: Math.round(root.rad(30))
             readonly property int maxHeight: 628     // cc.maxHeight - 2 * inset; taller content scrolls
             readonly property real shrinkAt: 0.35    // closing: the panel shrinks back once the sheet is this far home
             readonly property real dim: 0.55         // black over the main page while a sheet is open
@@ -203,7 +219,7 @@ Singleton {
             readonly property int backX: 20
             readonly property int backSize: 34
             readonly property int titleX: 70
-            readonly property int titleSize: 22
+            readonly property int titleSize: Math.round(root.tx(22))
             readonly property int switchWidth: 58
             readonly property int switchHeight: 30
             readonly property int switchRight: 19
@@ -211,31 +227,31 @@ Singleton {
             readonly property int captionX: 21
             readonly property real captionY: 26      // section top -> caption cap centre
             readonly property int captionGap: 52     // section top -> first row
-            readonly property int captionSize: 15
+            readonly property int captionSize: Math.round(root.tx(15))
             readonly property int statusRight: 23    // "• Scanning" right edge -> sheet edge
-            readonly property int statusSize: 15
+            readonly property int statusSize: Math.round(root.tx(15))
             readonly property int dot: 7
             readonly property int rowX: 20
             readonly property int rowHeight: 65
             readonly property int rowGap: 6
-            readonly property int rowRadius: 16
+            readonly property int rowRadius: Math.round(root.rad(16))
             readonly property int discX: 10
             readonly property int disc: 44
             readonly property int discIcon: 18
             readonly property int nameX: 71
             readonly property real nameY: 22
-            readonly property int nameSize: 18
+            readonly property int nameSize: Math.round(root.tx(18))
             readonly property int subX: 70
             readonly property real subY: 42.5
-            readonly property int subSize: 15
+            readonly property int subSize: Math.round(root.tx(15))
             readonly property int pillHeight: 36
             readonly property int pillRight: 8
             readonly property real pillPad: 17.5
-            readonly property int pillSize: 15
+            readonly property int pillSize: Math.round(root.tx(15))
             readonly property int hintX: 20
             readonly property int hintHeight: 27
             readonly property real hintY: 10.5
-            readonly property int hintSize: 17
+            readonly property int hintSize: Math.round(root.tx(17))
             readonly property int padBottom: 17
             readonly property int sliderRow: 78      // label line + track (sound, apps, displays)
             // open: dim leads, the sheet grows out of its tile; close mirrors it
@@ -265,9 +281,9 @@ Singleton {
         readonly property real lensX: 22
         readonly property real lensSize: 18
         readonly property real inputX: 57
-        readonly property real inputSize: 18
-        readonly property real titleSize: 22       // "Wallpaper"
-        readonly property real metaSize: 15        // counter, "Enter to apply", file name, card labels
+        readonly property real inputSize: root.tx(18)
+        readonly property real titleSize: root.tx(22)       // "Wallpaper"
+        readonly property real metaSize: root.tx(15)        // counter, "Enter to apply", file name, card labels
         readonly property real metaGap: 12         // "6/10 · Enter to apply"
         readonly property real frame: 2.5          // selection frame
         readonly property int settle: 420          // carousel ease to the selection (ms)
@@ -286,7 +302,7 @@ Singleton {
         readonly property real cardWidth: 247
         readonly property real cardHeight: 128
         readonly property real step: 259
-        readonly property real cardRadius: 13
+        readonly property real cardRadius: root.rad(13)
         readonly property real lift: 10            // the selected card rises (ref/05)
         readonly property real shrink: 0.03        // per step away, at most two steps
         readonly property real dim: 0.34           // black over neighbours, per step (max 1.5 steps)
@@ -308,7 +324,7 @@ Singleton {
         readonly property real thumbWidth: 249
         readonly property real thumbHeight: 150
         readonly property real step: 261
-        readonly property real radius: 13
+        readonly property real radius: root.rad(13)
         readonly property real shrink: 0.1         // ref/06: 1, .9, .8
         readonly property real dim: 0.2            // black per step away
         readonly property real maxDim: 0.55
@@ -329,7 +345,7 @@ Singleton {
         readonly property int width: 376
         readonly property int maxWidth: 520
         readonly property int height: 60
-        readonly property int radius: 30
+        readonly property int radius: Math.round(root.rad(30))
         readonly property real centerY: 30
         readonly property real padLeft: 17
         readonly property real iconSize: 18
@@ -337,8 +353,8 @@ Singleton {
         readonly property real sliderWidth: 245
         readonly property real sliderHeight: 8
         readonly property real padRight: 16
-        readonly property real valueSize: 15
-        readonly property real labelSize: 15
+        readonly property real valueSize: root.tx(15)
+        readonly property real labelSize: root.tx(15)
         readonly property real gap: 22             // slider/label -> value/detail
         readonly property int valueMove: 160       // slider follows a new value
         readonly property int swapOut: 90          // content dip when the activity changes
@@ -352,16 +368,16 @@ Singleton {
     // width: app icon left, title next to it; long titles scroll once (marquee).
     readonly property QtObject peek: QtObject {
         readonly property int height: 42
-        readonly property int radius: 20
+        readonly property int radius: Math.round(root.rad(20))
         readonly property int minWidth: 340
         readonly property int maxWidth: 460
         readonly property real padLeft: 15
         readonly property real padRight: 22
         readonly property real iconSize: 22
         readonly property real gap: 10
-        readonly property real titleSize: 16
+        readonly property real titleSize: root.tx(16)
         readonly property real badgeSize: 14
-        readonly property real badgeTextSize: 10
+        readonly property real badgeTextSize: root.tx(10)
         readonly property int marqueeDelay: 900
         readonly property real marqueeSpeed: 0.045  // px per ms
         readonly property int enter: 320            // icon pop + title slide
@@ -372,17 +388,17 @@ Singleton {
     readonly property QtObject card: QtObject {
         readonly property int width: 520
         readonly property int maxHeight: 460
-        readonly property int radius: 32
+        readonly property int radius: Math.round(root.rad(32))
         readonly property real pad: 22
         readonly property real iconSize: 24
-        readonly property real appSize: 14
-        readonly property real titleSize: 17
-        readonly property real bodySize: 15
+        readonly property real appSize: root.tx(14)
+        readonly property real titleSize: root.tx(17)
+        readonly property real bodySize: root.tx(15)
         readonly property int bodyLines: 4
         readonly property real imageSize: 52
         readonly property real actionHeight: 34
-        readonly property real actionSize: 14
-        readonly property real rowSize: 14         // older notifications of the same app
+        readonly property real actionSize: root.tx(14)
+        readonly property real rowSize: root.tx(14)         // older notifications of the same app
         readonly property int groupRows: 3
         readonly property int expand: 260          // compact <-> card content cross-fade
         readonly property real dismissDrag: 70
@@ -406,7 +422,7 @@ Singleton {
         readonly property int gridTop: 74          // first group heading line
         readonly property int headingHeight: 30    // heading line above a group's cards
         readonly property real headingY: 9         // heading text centre inside that line
-        readonly property real headingSize: 15
+        readonly property real headingSize: root.tx(15)
         readonly property real ruleGap: 12         // number -> hairline
         readonly property int cardWidth: 288
         readonly property int thumbHeight: 180     // preview box (16:10), window fitted inside
@@ -421,12 +437,12 @@ Singleton {
         readonly property real edgeFade: 36        // grid edge fades out while more cards are off view
         readonly property int footerHeight: 54
         readonly property real footerY: 27         // footer line centre from the panel bottom
-        readonly property real cardRadius: 13
+        readonly property real cardRadius: root.rad(13)
         readonly property real frame: 2.5          // selection frame (= picker)
         readonly property real dim: 0.36           // black over every card but the selected one
         readonly property real shrink: 0.035       // unselected cards are this much smaller
         readonly property real iconSize: 18
-        readonly property real titleSize: 15
+        readonly property real titleSize: root.tx(15)
         readonly property real placeholderIcon: 52 // app icon while the preview has no frame yet
         readonly property real dotSize: 8          // focused window (like the applied-wallpaper dot)
         readonly property real dotInset: 13
@@ -449,7 +465,7 @@ Singleton {
     readonly property QtObject media: QtObject {
         // hover chip
         readonly property real chipCover: 24
-        readonly property real chipCoverRadius: 6
+        readonly property real chipCoverRadius: root.rad(6)
         readonly property real chipGap: 11          // cover -> title, like icon -> window title
         readonly property real chipArtistGap: 9     // title -> artist on one line
         readonly property real chipMaxWidth: 296     // ends ~40 px before the clock group (hover)
@@ -464,24 +480,24 @@ Singleton {
         readonly property int width: 686
         readonly property int height: 236
         readonly property int emptyHeight: 128
-        readonly property int radius: 38
+        readonly property int radius: Math.round(root.rad(38))
         readonly property real pad: 24
         readonly property real cover: 188
-        readonly property real coverRadius: 20
+        readonly property real coverRadius: root.rad(20)
         readonly property real columnGap: 28
         readonly property real pillHeight: 28
         readonly property real pillIcon: 16
-        readonly property real pillSize: 14
+        readonly property real pillSize: root.tx(14)
         readonly property real pillPad: 11
         readonly property real titleY: 78            // cap centres from the panel top
         readonly property real artistY: 106
-        readonly property real titleSize: 24
-        readonly property real artistSize: 17
+        readonly property real titleSize: root.tx(24)
+        readonly property real artistSize: root.tx(17)
         readonly property real trackY: 136           // seek track centre
         readonly property real trackHeight: 6
         readonly property real trackHover: 10
         readonly property real timeY: 156
-        readonly property real timeSize: 13
+        readonly property real timeSize: root.tx(13)
         readonly property real controlsY: 190        // centre of the transport row
         readonly property real playDisc: 52
         readonly property real playGlyph: 20
@@ -520,7 +536,7 @@ Singleton {
         function fg(alpha: real): color {
             return Qt.rgba(root.text.r, root.text.g, root.text.b, alpha);
         }
-        readonly property string family: "Inter Display" // optical size for large type (SF Pro Display in the video)
+        readonly property string family: root.fontFamily === "Inter" ? "Inter Display" : root.fontFamily // optical size for large type (SF Pro Display in the video); another shell font replaces it
         readonly property real dateSize: 34            // "Sunday, October 25": cap height 24.5, ink 303 wide
         readonly property int dateWeight: Font.Medium
         readonly property real dateSpacing: 0.3
@@ -535,12 +551,12 @@ Singleton {
         readonly property real avatarCenter: 286
         readonly property real avatarFill: 0.15        // white over the backdrop (~#343434)
         readonly property real avatarRing: 0.3
-        readonly property real nameSize: 26            // "user0": figures 18.5 high, ink 68 wide
+        readonly property real nameSize: root.tx(26)            // "user0": figures 18.5 high, ink 68 wide
         readonly property int nameWeight: Font.DemiBold
         readonly property real nameSpacing: -0.6
         readonly property real nameBaseline: 196       // y 1244
         readonly property real nameAlpha: 0.96
-        readonly property real hintSize: 20            // "Press Any Key to Enter Password": cap 15, ink 306 wide
+        readonly property real hintSize: root.tx(20)            // "Press Any Key to Enter Password": cap 15, ink 306 wide
         readonly property int hintWeight: Font.DemiBold
         readonly property real hintSpacing: -0.35
         readonly property real hintBaseline: 138       // y 1302
@@ -551,11 +567,11 @@ Singleton {
         readonly property real pillCenter: 142         // pill centre above the bottom (hint line centre)
         readonly property real pillFill: 0.13
         readonly property real pillStroke: 0.1
-        readonly property real pillTextSize: 17
+        readonly property real pillTextSize: root.tx(17)
         readonly property real dotSize: 9
         readonly property real dotGap: 7
         readonly property real capsSize: 20            // Lucide arrow-big-up at the right end of the pill
-        readonly property real noteSize: 16            // caps lock / PAM message under the pill
+        readonly property real noteSize: root.tx(16)            // caps lock / PAM message under the pill
         readonly property real noteBaseline: 92
         readonly property real shake: 14               // px, first swing of the error shake
         // status glyphs (top right): battery x 2449..2487 (volume glyph without battery), Wi-Fi 2506..2526
@@ -590,14 +606,14 @@ Singleton {
     readonly property QtObject settings: QtObject {
         readonly property int width: 1072
         readonly property int height: 724
-        readonly property int radius: 32
+        readonly property int radius: Math.round(root.rad(32))
         readonly property int sidebarWidth: 292      // faintly lifted column behind search + list
         // search field
         readonly property int searchX: 14
         readonly property int searchY: 14
         readonly property int searchWidth: 264
         readonly property int searchHeight: 43
-        readonly property int searchRadius: 12
+        readonly property int searchRadius: Math.round(root.rad(12))
         readonly property real lensX: 23             // lens centre from the field's left edge
         readonly property int lensSize: 15
         readonly property int searchTextX: 43
@@ -607,7 +623,7 @@ Singleton {
         readonly property real sideTop: 75           // first row top (row centres 100.5 + i * 57.4)
         readonly property real sideStep: 57.4
         readonly property int sideRowHeight: 51
-        readonly property int sideRadius: 14
+        readonly property int sideRadius: Math.round(root.rad(14))
         readonly property int sideDiscX: 10
         readonly property int sideDisc: 40
         readonly property int sideIconSize: 23
@@ -619,13 +635,13 @@ Singleton {
         readonly property int navWidth: 40
         readonly property int navHeight: 34
         readonly property int navGap: 8
-        readonly property int navRadius: 10
+        readonly property int navRadius: Math.round(root.rad(10))
         readonly property int navIconSize: 19
         // page column
         readonly property int pageTop: 64            // scroll viewport top (cards start here)
         readonly property int cardX: 324
         readonly property int cardWidth: 719
-        readonly property int cardRadius: 16
+        readonly property int cardRadius: Math.round(root.rad(16))
         readonly property int headerHeight: 206
         readonly property real headerDiscY: 67       // centres from the header card top
         readonly property int headerDisc: 78
@@ -651,7 +667,7 @@ Singleton {
         readonly property int swatchDot: 8
         readonly property int fieldWidth: 294
         readonly property int fieldHeight: 37
-        readonly property int fieldRadius: 9
+        readonly property int fieldRadius: Math.round(root.rad(9))
         readonly property int fieldPad: 8
         readonly property int switchWidth: 57
         readonly property int switchHeight: 30
@@ -666,7 +682,7 @@ Singleton {
         // dropdown (choices)
         readonly property int menuRow: 42
         readonly property int menuPad: 6
-        readonly property int menuRadius: 14
+        readonly property int menuRadius: Math.round(root.rad(14))
         readonly property int menuMinWidth: 220
 
         readonly property color window: root.island
@@ -703,13 +719,13 @@ Singleton {
         readonly property int blockPad: 12           // under the last content line
         readonly property int listRow: 46            // one entry of a list / folder row
         readonly property int miniButton: 30         // up / down / remove squares
-        readonly property int miniRadius: 9
+        readonly property int miniRadius: Math.round(root.rad(9))
         readonly property int menuMaxRows: 9         // longer dropdowns scroll (and get a filter)
         readonly property int menuFilterHeight: 44
         readonly property int fontMenuWidth: 360
         readonly property int popover: 280           // colour picker width
         readonly property int popoverPad: 14
-        readonly property int popoverRadius: 18
+        readonly property int popoverRadius: Math.round(root.rad(18))
         readonly property int svHeight: 168          // saturation / value square
         readonly property int hueHeight: 14
         readonly property int colourDisc: 24
@@ -735,14 +751,14 @@ Singleton {
         readonly property int width: 686           // = Theme.cc.width
         readonly property int maxHeight: 760       // taller lists scroll
         readonly property int emptyHeight: 252     // header + "All caught up"
-        readonly property int radius: 38           // = Theme.cc.radius
+        readonly property int radius: Math.round(root.rad(38))           // = Theme.cc.radius
         readonly property int pad: 19              // panel edge -> cards (= cc)
         readonly property int headerHeight: 80     // title line; the list starts below it
         readonly property real headerY: 41         // title, switch and pill centre
         readonly property int titleX: 25           // = card edge + 6 (group icons share it)
-        readonly property int titleSize: 22        // = sheet title
+        readonly property int titleSize: Math.round(root.tx(22))        // = sheet title
         readonly property int countGap: 10
-        readonly property int labelSize: 15       // "Focus"
+        readonly property int labelSize: Math.round(root.tx(15))       // "Focus"
         readonly property int labelGap: 12         // "Focus" -> switch
         readonly property int controlsGap: 16      // switch -> "Clear all"
         readonly property int pillHeight: 34
@@ -751,19 +767,19 @@ Singleton {
         readonly property int groupIcon: 22
         readonly property int groupIconX: 6        // from the card edge
         readonly property int groupTextX: 38       // name, from the card edge
-        readonly property int groupSize: 15
+        readonly property int groupSize: Math.round(root.tx(15))
         readonly property int groupGap: 16         // last card of a group -> next header
         readonly property int cardGap: 8
-        readonly property int cardRadius: 28       // = Theme.cc.cardRadius
+        readonly property int cardRadius: Math.round(root.rad(28))       // = Theme.cc.cardRadius
         readonly property int padX: 20
         readonly property int padY: 16
-        readonly property int cardTitleSize: 17
-        readonly property int bodySize: 15
+        readonly property int cardTitleSize: Math.round(root.tx(17))
+        readonly property int bodySize: Math.round(root.tx(15))
         readonly property real bodyLineHeight: 1.12
         readonly property int bodyLines: 2
         readonly property int bodyLinesOpen: 16
         readonly property int bodyGap: 4           // title line -> body
-        readonly property int timeSize: 13
+        readonly property int timeSize: Math.round(root.tx(13))
         readonly property int dot: 6               // unread when the center was opened
         readonly property int chip: 26             // fold / unfold / dismiss discs
         readonly property int chipIcon: 13
@@ -773,10 +789,10 @@ Singleton {
         readonly property int leadGap: 14
         readonly property real leadAspect: 1.34    // up to this aspect (either way) an image counts as square
         readonly property int imageMaxHeight: 260  // unfolded: full width image below the body
-        readonly property int imageRadius: 16
+        readonly property int imageRadius: Math.round(root.rad(16))
         readonly property int imageGap: 12
         readonly property int actionHeight: 32
-        readonly property int actionSize: 14
+        readonly property int actionSize: Math.round(root.tx(14))
         readonly property int actionGap: 8
         readonly property int actionsTop: 12
         readonly property int stackLayers: 2       // edges drawn behind a folded group
@@ -787,7 +803,7 @@ Singleton {
         readonly property int listInset: 6         // scrolled rows end this far above the panel edge (clear of the corners)
         readonly property real scrollbar: 3        // slim bar in the right gutter while the list scrolls
         readonly property int emptyIcon: 30
-        readonly property int emptySize: 18
+        readonly property int emptySize: Math.round(root.tx(18))
         // motion (Motion.ms applies)
         readonly property int move: 380            // rows slide, cards resize (= island panel morph)
         readonly property int enter: 260           // a new row fades in
@@ -821,5 +837,25 @@ Singleton {
         readonly property int relayout: 380       // tiles glide to new slots when the layout changes
         // settings preview (apps/settings/pages/CcPreview.qml)
         readonly property real previewScale: 0.6
+    }
+
+    // ---- look (Settings look*): island fill, outline, shadow (island/IslandShape) -----------
+    // Defaults are the video: solid island, no outline, no shadow. Opacity only thins the
+    // island body (and the panels morphing out of it); text and cards stay solid. The shadow
+    // needs room around the body: the island layer surface grows by shadowMargin while it is on.
+    readonly property QtObject look: QtObject {
+        readonly property real islandOpacity: Math.max(0.2, Math.min(1, Settings.lookIslandOpacity))
+        readonly property real panelOpacity: Math.max(0.2, Math.min(1, Settings.lookPanelOpacity))
+        readonly property bool translucent: islandOpacity < 1 || panelOpacity < 1
+        readonly property int fillMs: 240              // island <-> panel opacity cross-fade
+        readonly property bool border: Settings.lookBorder
+        readonly property real borderWidth: Math.max(0.5, Math.min(6, Settings.lookBorderWidth))
+        readonly property color borderColor: Settings.lookBorderColor !== "" ? Settings.lookBorderColor : root.mix(root.island, root.text, 0.2)
+        readonly property bool shadow: Settings.lookShadow
+        readonly property real strength: Math.max(0, Math.min(1, Settings.lookShadowStrength))
+        readonly property real shadowBlur: 14 + 34 * strength
+        readonly property real shadowOpacity: 0.3 + 0.5 * strength
+        readonly property real shadowOffset: 3 + 7 * strength  // px down
+        readonly property int shadowMargin: shadow ? Math.ceil(shadowBlur + shadowOffset + 4) : 0
     }
 }

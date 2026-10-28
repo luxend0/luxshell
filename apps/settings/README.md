@@ -68,11 +68,12 @@ SettingsPage {
 then one line in `Catalog.qml` `sources`, at its sidebar position. A page without options
 (or `hidden: true`) stays out of the sidebar and search. Timers, Processes and Components
 the page needs go straight inside it (see `pages/Motion.qml`, `pages/Launcher.qml`).
-Existing pages: `BarIsland, Media, ClockDate, Appearance, Wallpaper, Motion, Launcher,
+Existing pages: `BarIsland, Media, ClockDate, Appearance, ThemeEditor, Wallpaper, Motion, Launcher,
 OverviewPickers, Notifications, ControlCenter, LockScreen, Keybinds, Integrations, System, Demo`.
 Reusable custom rows in `pages/`: `HiddenList.qml` (ids to exclude, "Add" opens a filterable
 dropdown: launcher apps, media players), `CcPreview.qml` (the control center's real main page,
-scaled down, live).
+scaled down, live), `Note.qml` (a wrapped paragraph without label under an option: what it
+changes, how to undo it; field `text`, string or function).
 
 ## Key prefixes per area
 
@@ -162,7 +163,7 @@ only inside these functions: a binding in `sections` itself rebuilds every row o
 | `switch` | bool | |
 | `slider` | number | `min`, `max`, `step`, `format(n)` |
 | `swatches` | accent discs, `""` = theme accent | `colours()` |
-| `text` | string field | `placeholder`, `valid(t)`, `apply(t)` (default: set) |
+| `text` | string field | `placeholder`, `valid(t)`, `apply(t)` (default: set), `mono: true` (Settings monospace font, hex / code) |
 | `button` | action | `action` (text or function), `run()`, `confirm` (text: first click asks) |
 | `info` | read-only text | |
 | `color` | `"#rrggbb"`, picker (saturation/value, hue, hex, swatches) | `allowEmpty` + `emptyLabel` + `fallback()` (`""` = default colour), `swatches()` |

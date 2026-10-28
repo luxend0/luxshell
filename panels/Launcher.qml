@@ -230,7 +230,7 @@ PanelBase {
             selectionColor: Theme.surfaceHigh
             selectedTextColor: Theme.text
             selectByMouse: true
-            font.family: Theme.fontFamily
+            font.family: root.mode && ["terminal", "calculator"].includes(root.mode.glyph) ? Theme.monoFamily : Theme.fontFamily // command + calculator modes (any prefix): Settings monospace font
             font.pixelSize: root.lt.inputSize
             cursorDelegate: Rectangle {
                 width: 2

@@ -25,6 +25,9 @@ import Quickshell
 //                         (services/Lock.qml)
 //   LUXSHELL_SETTINGS_DEMO=1  settings app shows the "Option types" page (every option kind,
 //                         apps/settings/pages/Demo.qml); hidden otherwise
+//   LUXSHELL_INTEGRATION_ROOT  home directory the kitty / GTK integrations edit instead of $HOME
+//                         (<root>/.config/kitty/kitty.conf, <root>/.config/gtk-{3,4}.0/gtk.css;
+//                         services/AppThemes). With LUXSHELL_DRYRUN=1 they edit nothing unless it is set.
 Singleton {
     id: root
 
@@ -41,6 +44,7 @@ Singleton {
     readonly property real slowmo: Math.max(0.1, parseFloat(get("LUXSHELL_SLOWMO")) || 1)
     readonly property string lockTestPassword: get("LUXSHELL_LOCK_TEST_PASSWORD")
     readonly property bool settingsDemo: get("LUXSHELL_SETTINGS_DEMO") === "1"
+    readonly property string integrationRoot: get("LUXSHELL_INTEGRATION_ROOT")
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
         if (own !== "")

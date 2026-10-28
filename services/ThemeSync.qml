@@ -17,13 +17,15 @@ import "palette.js" as Palette
 //      <cacheDir>/gtk.css            GTK 4 / libadwaita named colours (+ GTK 3 aliases)
 //      <cacheDir>/palette.json       every role + ansi, for scripts
 //
-//    luxshell never edits other configs. To use them (cacheDir = ~/.cache/luxshell):
+//    luxshell edits no other config on its own. To use them (cacheDir = ~/.cache/luxshell):
 //      kitty   kitty.conf:   include ~/.cache/luxshell/kitty-theme.conf
 //              live reload:  kitty @ set-colors --all --configured ~/.cache/luxshell/kitty-theme.conf
 //                            (needs allow_remote_control), or ctrl+shift+f5 in kitty
 //      GTK 4   ~/.config/gtk-4.0/gtk.css:  @import url("file:///home/USER/.cache/luxshell/gtk.css");
 //      GTK 3   same line in ~/.config/gtk-3.0/gtk.css (adw-gtk3 reads the same colour names)
-//    Settings.themeExport = false turns the export off.
+//    Settings.themeExport = false turns the export off (unless the kitty / GTK integration
+//    needs it). Settings > Integrations can add / remove those include lines itself
+//    (services/AppThemes, opt-in).
 Singleton {
     id: root
 
@@ -130,15 +132,26 @@ fi`
     }
 
     // ---- 2. export of the applied theme ----------------------------------------------
+    // (custom themes load from disk: a saved custom theme is waited for, never exported as noir;
+    // the accent picked in the settings app replaces the theme's own; the kitty/GTK integrations
+    // (services/AppThemes) need the files even with the export switch off)
     readonly property string appliedName: Themes.palettes.hasOwnProperty(Settings.theme) ? Settings.theme : "noir"
-    readonly property var applied: Themes.palettes[appliedName]
+    readonly property bool known: Themes.palettes.hasOwnProperty(Settings.theme) || CustomThemes.ready
+    readonly property var applied: Settings.accent === "" ? Themes.palettes[appliedName] : Object.assign({}, Themes.palettes[appliedName], {
+        "accent": Settings.accent
+    })
+    readonly property bool exporting: Settings.themeExport || Settings.integrationKitty || Settings.integrationGtk
+    // files the last export replaced (names in cacheDir), e.g. ["kitty-theme.conf"]
+    signal exported(var names)
     onAppliedChanged: exportTimer.restart()
+    onExportingChanged: exportTimer.restart()
+    onKnownChanged: exportTimer.restart()
     Component.onCompleted: exportTimer.restart()
 
     Timer {
         id: exportTimer
         interval: 400
-        onTriggered: if (Settings.themeExport)
+        onTriggered: if (root.exporting && root.known)
             root.write({
                 "kitty-theme.conf": root.kitty(root.appliedName, root.applied),
                 "gtk.css": root.gtk(root.appliedName, root.applied),
@@ -191,7 +204,7 @@ fi`
         writer.command = ["sh", "-c", `d=$1; shift; mkdir -p "$d" || exit 1
 while [ $# -ge 2 ]; do
     f="$d/$1"; printf '%s' "$2" >"$f.part"
-    if cmp -s "$f.part" "$f"; then rm -f "$f.part"; else mv -f "$f.part" "$f"; fi
+    if cmp -s "$f.part" "$f"; then rm -f "$f.part"; else mv -f "$f.part" "$f" && echo "$1"; fi
     shift 2
 done`, "luxshell-write", Wallpapers.cacheDir, ...args];
         writer.running = true;
@@ -199,6 +212,13 @@ done`, "luxshell-write", Wallpapers.cacheDir, ...args];
 
     Process {
         id: writer
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const names = text.split("\n").filter(n => n !== "");
+                if (names.length > 0)
+                    root.exported(names);
+            }
+        }
         onExited: root.flush()
     }
 }

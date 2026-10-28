@@ -16,8 +16,8 @@ PanelWindow {
 
     screen: modelData
     anchors.top: true
-    implicitWidth: Math.min(modelData.width, Math.max(Theme.hover.width, Panels.maxWidth) + 2 * Theme.earRadius)
-    implicitHeight: Math.min(modelData.height, Math.max(Theme.hover.height, Panels.maxHeight) + 2)
+    implicitWidth: Math.min(modelData.width, Math.max(Theme.hover.width, Panels.maxWidth) + 2 * Theme.earRadius + 2 * Theme.look.shadowMargin)
+    implicitHeight: Math.min(modelData.height, Math.max(Theme.hover.height, Panels.maxHeight) + 2 + Theme.look.shadowMargin)
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: Theme.collapsed.height
     color: "transparent"
