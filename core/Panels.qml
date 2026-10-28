@@ -35,6 +35,14 @@ Singleton {
             "osd": {
                 "component": volumeOsd,
                 "kind": "overlay"
+            },
+            "themes": {
+                "component": themePicker,
+                "kind": "panel"
+            },
+            "wallpaper": {
+                "component": wallpaperPicker,
+                "kind": "panel"
             }
         })
 
@@ -92,5 +100,13 @@ Singleton {
     Component {
         id: volumeOsd
         VolumeOsd {}
+    }
+    Component {
+        id: themePicker
+        ThemePicker {}
+    }
+    Component {
+        id: wallpaperPicker
+        WallpaperPicker {}
     }
 }
