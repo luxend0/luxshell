@@ -24,6 +24,8 @@ Singleton {
     id: root
 
     readonly property real slowmo: Env.slowmo
+    // Settings "Animation speed" (apps/settings, Motion page): 2 = everything twice as fast
+    readonly property real speed: Math.max(0.25, Math.min(4, Settings.animationSpeed || 1))
 
     readonly property var standard: [0.4, 0.0, 0.2, 1.0, 1, 1]
     readonly property var emphasized: [0.2, 0.0, 0.0, 1.0, 1, 1]
@@ -55,7 +57,7 @@ Singleton {
     }
 
     function ms(v: real): int {
-        return Math.round(v * slowmo);
+        return Math.round(v * slowmo / speed);
     }
 
     // ---- content fades ---------------------------------------------------------

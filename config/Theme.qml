@@ -33,14 +33,17 @@ Singleton {
     }
 
     // ---- type ------------------------------------------------------------
-    readonly property string fontFamily: "Inter"
+    readonly property string fontFamily: Settings.fontFamily !== "" ? Settings.fontFamily : "Inter"
+    // Settings "Font size" (15 px = 1): scales the settings app's text; modules
+    // with sizes measured from the video keep them unless they multiply by it
+    readonly property real fontScale: Math.max(0.6, Math.min(1.6, Settings.fontSize / 15))
 
     // ---- secondary motion (widgets/Anim) ----------------------------------
     readonly property var curve: [0.33, 1.0, 0.68, 1.0, 1.0, 1.0] // easeOutCubic
     readonly property int duration: 450
     readonly property int fadeIn: 260        // small state changes (active workspace)
     readonly property int fadeOut: 140       // hover discs
-    readonly property int hoverHold: 160     // pointer may leave this long before collapsing
+    readonly property int hoverHold: Settings.hoverHold // pointer may leave this long before collapsing (default 160)
 
     // ---- island ----------------------------------------------------------
     // the layer surface is sized from the hover size and the largest panel
@@ -384,5 +387,115 @@ Singleton {
         readonly property color action: root.mix(root.island, root.text, 0.12)
         readonly property color actionHover: root.mix(root.island, root.text, 0.2)
         readonly property color separator: root.mix(root.island, root.text, 0.1)
+    }
+
+    // ---- settings app (ref/12, measured 1:1 at 2560x1440) ------------------------
+    // Own window (apps/settings, FloatingWindow 1072 x 724, Hyprland centres it in the
+    // work area). Sidebar left, scrolling page right. Colours are palette mixes fitted
+    // to noir: window = island black, cards barely lifted, controls one step up.
+    readonly property QtObject settings: QtObject {
+        readonly property int width: 1072
+        readonly property int height: 724
+        readonly property int radius: 32
+        readonly property int sidebarWidth: 292      // faintly lifted column behind search + list
+        // search field
+        readonly property int searchX: 14
+        readonly property int searchY: 14
+        readonly property int searchWidth: 264
+        readonly property int searchHeight: 43
+        readonly property int searchRadius: 12
+        readonly property real lensX: 23             // lens centre from the field's left edge
+        readonly property int lensSize: 15
+        readonly property int searchTextX: 43
+        // sidebar rows
+        readonly property int sideX: 14
+        readonly property int sideWidth: 264
+        readonly property real sideTop: 75           // first row top (row centres 100.5 + i * 57.4)
+        readonly property real sideStep: 57.4
+        readonly property int sideRowHeight: 51
+        readonly property int sideRadius: 14
+        readonly property int sideDiscX: 10
+        readonly property int sideDisc: 40
+        readonly property int sideIconSize: 23
+        readonly property int sideTextX: 61
+        readonly property int highlightMove: 180
+        // back / forward
+        readonly property int navX: 315
+        readonly property int navY: 16
+        readonly property int navWidth: 40
+        readonly property int navHeight: 34
+        readonly property int navGap: 8
+        readonly property int navRadius: 10
+        readonly property int navIconSize: 19
+        // page column
+        readonly property int pageTop: 64            // scroll viewport top (cards start here)
+        readonly property int cardX: 324
+        readonly property int cardWidth: 719
+        readonly property int cardRadius: 16
+        readonly property int headerHeight: 206
+        readonly property real headerDiscY: 67       // centres from the header card top
+        readonly property int headerDisc: 78
+        readonly property int headerIconSize: 48
+        readonly property real headerTitleY: 131
+        readonly property real headerSubY: 166
+        readonly property int titleSize: 24
+        readonly property int gap: 17                // header -> untitled group
+        readonly property int labelBlock: 51         // titled group: caption line above the card
+        readonly property real labelY: 24.5
+        readonly property int labelSize: 14
+        readonly property int rowHeight: 59
+        readonly property int sliderRowHeight: 88    // label line + track ("Font size")
+        readonly property real sliderLabelY: 26
+        readonly property real sliderTrackY: 62
+        readonly property int rowInset: 20           // label x, separator inset
+        readonly property int valueRight: 23         // value arrow right edge -> card edge
+        readonly property int textSize: 17
+        readonly property int arrowSize: 15
+        readonly property int arrowGap: 7
+        readonly property int swatch: 28
+        readonly property int swatchStep: 38
+        readonly property int swatchDot: 8
+        readonly property int fieldWidth: 294
+        readonly property int fieldHeight: 37
+        readonly property int fieldRadius: 9
+        readonly property int fieldPad: 8
+        readonly property int switchWidth: 57
+        readonly property int switchHeight: 30
+        readonly property int knob: 20
+        readonly property int trackHeight: 6
+        readonly property int sliderKnob: 20
+        readonly property int padBottom: 32
+        readonly property int scrollX: 1058          // scrollbar handle (window coordinates)
+        readonly property int scrollWidth: 8
+        readonly property int scrollInset: 6
+        readonly property int pageFade: 200          // content cross-fade on page change
+        // dropdown (choices)
+        readonly property int menuRow: 42
+        readonly property int menuPad: 6
+        readonly property int menuRadius: 14
+        readonly property int menuMinWidth: 220
+
+        readonly property color window: root.island
+        readonly property color sidebar: root.mix(root.island, root.surface, 0.2)          // #020202
+        readonly property color card: root.mix(root.island, root.surface, 0.55)            // #060606
+        readonly property color search: root.mix(root.island, root.surfaceHigh, 0.51)      // #121212
+        readonly property color nav: root.mix(root.island, root.surfaceHigh, 0.43)         // #0f0f0f
+        readonly property color selected: root.mix(root.island, root.surfaceHigh, 0.77)    // #1b1b1b
+        readonly property color disc: root.mix(root.island, root.surfaceHigh, 0.69)        // #181818
+        readonly property color discOn: root.mix(selected, root.accent, 0.48)              // #7d7d7d on noir
+        readonly property color field: root.mix(root.island, root.surfaceHigh, 0.63)       // #161616
+        readonly property color switchOff: root.mix(root.island, root.surfaceHigh, 0.86)   // #1e1e1e
+        readonly property color knobOff: root.mix(root.island, root.textDim, 0.9)          // #7c7c7c
+        readonly property color separator: root.mix(root.island, root.surfaceHigh, 0.72)
+        readonly property color scrollbar: selected
+        readonly property color hover: root.mix(card, root.surfaceHigh, 0.32)
+        readonly property color menu: root.mix(root.island, root.surfaceHigh, 0.62)
+        readonly property color menuHover: root.mix(root.island, root.surfaceHigh, 1.0)
+        readonly property color icon: root.mix(root.island, root.textDim, 0.9)
+        readonly property color label: root.mix(root.text, root.island, 0.07)
+        readonly property color value: root.mix(root.island, root.textDim, 0.87)
+        readonly property color caption: root.mix(root.island, root.textDim, 0.77)
+        readonly property color placeholder: root.mix(root.island, root.textDim, 0.95)
+        readonly property color ring: root.textSecondary                                    // keyboard focus
     }
 }

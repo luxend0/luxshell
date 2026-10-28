@@ -130,7 +130,7 @@ Singleton {
     }
 
     // ---- helpers for the other launcher providers ----------------------------------
-    readonly property var terminal: ["kitty"]
+    readonly property var terminal: [Settings.terminal || "kitty"] // settings app, Launcher page
 
     // match quality of an arbitrary string (window titles), 0 = no match
     function fuzzy(text: string, q: string): real {
@@ -142,11 +142,30 @@ Singleton {
 
     function runInTerminal(argv: var, hold: bool, cwd: string): void {
         Quickshell.execDetached({
-            "command": [...terminal, ...(hold ? ["--hold"] : []), ...argv],
+            "command": terminalCommand(argv, hold),
             "workingDirectory": cwd || Env.get("HOME")
         });
     }
 
-    // $TERMINAL, else the first installed of a few common ones, with the right exec flag
-    readonly property string terminalScript: 'for t in "$TERMINAL" kitty foot alacritty ghostty wezterm konsole xterm; do ' + '[ -n "$t" ] && command -v "$t" >/dev/null 2>&1 && break; t=; done; ' + '[ -n "$t" ] || exit 127; case "${t##*/}" in ' + 'kitty|foot) exec "$t" "$@" ;; wezterm) exec "$t" start -- "$@" ;; *) exec "$t" -e "$@" ;; esac'
+    // argv in the chosen terminal; hold = the window stays open after the command
+    function terminalCommand(argv: var, hold: bool): var {
+        const t = terminal[0];
+        switch (t) {
+        case "kitty":
+        case "foot":
+            return [t, ...(hold ? ["--hold"] : []), ...argv];
+        case "alacritty":
+        case "konsole":
+            return [t, ...(hold ? ["--hold"] : []), "-e", ...argv];
+        case "ghostty":
+            return [t, ...(hold ? ["--wait-after-command=true"] : []), "-e", ...argv];
+        case "wezterm":
+            return [t, "start", "--", ...argv];
+        default:
+            return [t, ...(hold ? ["-hold"] : []), "-e", ...argv];
+        }
+    }
+
+    // the chosen terminal, else $TERMINAL, else the first installed of a few common ones, with the right exec flag
+    readonly property string terminalScript: 'for t in ' + terminal[0].replace(/[^a-z0-9._-]/gi, "") + ' "$TERMINAL" kitty foot alacritty ghostty wezterm konsole xterm; do ' + '[ -n "$t" ] && command -v "$t" >/dev/null 2>&1 && break; t=; done; ' + '[ -n "$t" ] || exit 127; case "${t##*/}" in ' + 'kitty|foot) exec "$t" "$@" ;; wezterm) exec "$t" start -- "$@" ;; *) exec "$t" -e "$@" ;; esac'
 }

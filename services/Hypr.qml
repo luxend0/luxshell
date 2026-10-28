@@ -2,12 +2,13 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import qs.config
 
 // Workspaces 1..count and the focused window. Event driven (Hyprland IPC socket).
 Singleton {
     id: root
 
-    readonly property int count: 5
+    readonly property int count: Math.max(2, Math.min(6, Settings.workspaceCount || 5)) // settings app, Bar & Island
 
     // activeToplevel is only set by focus events; right after a (re)start fall back
     // to the client Hyprland reports as most recently focused

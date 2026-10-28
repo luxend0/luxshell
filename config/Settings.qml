@@ -21,6 +21,20 @@ Singleton {
     readonly property list<string> wallpaperDirs: adapter.wallpaperDirs
     readonly property bool wallpaperLayer: adapter.wallpaperLayer
     readonly property bool themeExport: adapter.themeExport
+    // settings app (apps/settings)
+    readonly property int workspaceCount: adapter.workspaceCount
+    readonly property int hoverHold: adapter.hoverHold
+    readonly property string clockFormat: adapter.clockFormat
+    readonly property string dateFormat: adapter.dateFormat
+    readonly property string fontFamily: adapter.fontFamily
+    readonly property int fontSize: adapter.fontSize
+    readonly property real animationSpeed: adapter.animationSpeed
+    readonly property string terminal: adapter.terminal
+    readonly property string searchEngine: adapter.searchEngine
+    readonly property bool webResults: adapter.webResults
+    readonly property real notifTimeout: adapter.notifTimeout
+    readonly property real notifTimeoutLow: adapter.notifTimeoutLow
+    readonly property real notifTimeoutCritical: adapter.notifTimeoutCritical
 
     function set(key: string, value: var): bool {
         if (adapter[key] === undefined) {
@@ -60,6 +74,20 @@ Singleton {
             property list<string> wallpaperDirs: ["~/Pictures/Wallpapers", "~/.local/share/luxos"] // read only, searched 4 levels deep
             property bool wallpaperLayer: false // luxshell paints the wallpaper itself (also LUXSHELL_WALLPAPER=1); off = Ambxst does
             property bool themeExport: true // write the applied theme to ~/.cache/luxshell (kitty, gtk.css, palette.json)
+            // settings app (apps/settings/Catalog.qml lists every option with its consumer)
+            property int workspaceCount: 5 // island capsules (services/Hypr count), 2..6
+            property int hoverHold: 160 // ms the pointer may leave the island before it collapses
+            property string clockFormat: "24h" // "24h" | "12h" | "12h-ampm" (services/Clock)
+            property string dateFormat: "ddd, MMM d" // Qt date format of the hover date (services/Clock)
+            property string fontFamily: "Inter" // Theme.fontFamily, every text of the shell
+            property int fontSize: 15 // px; Theme.fontScale = fontSize / 15 (settings app text)
+            property real animationSpeed: 1 // divides every animation duration (config/Motion ms())
+            property string terminal: "kitty" // launcher "> cmd" and Terminal=true apps (services/Apps)
+            property string searchEngine: "duckduckgo" // launcher web search (services/SearchEngines)
+            property bool webResults: true // web search row under every launcher query
+            property real notifTimeout: 5 // s a normal notification peek stays (services/Notifs)
+            property real notifTimeoutLow: 3.5 // s, low urgency and transient
+            property real notifTimeoutCritical: 9 // s, critical
         }
     }
 }

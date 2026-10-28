@@ -14,6 +14,7 @@ import Quickshell
 import qs.core
 import qs.island
 import qs.background
+import qs.apps.settings
 
 ShellRoot {
     Variants {
@@ -26,4 +27,7 @@ ShellRoot {
 
     // wallpaper surface (only with LUXSHELL_WALLPAPER=1 / Settings.wallpaperLayer), theme export
     WallpaperLayer {}
+
+    // settings app window (apps/settings), created while open
+    SettingsHost {}
 }

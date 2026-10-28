@@ -7,7 +7,7 @@ import qs.services
 Provider {
     prefix: ">"
     inDefault: false
-    label: "Run in kitty"
+    label: "Run in " + Apps.terminal[0]
     glyph: "terminal"
     limit: 12
 
@@ -29,12 +29,12 @@ Provider {
                     "run": () => run(c)
                 }));
         if (q === "")
-            return recent.length > 0 ? recent : [hint("Type a command", "Runs in kitty, the window stays open")];
+            return recent.length > 0 ? recent : [hint("Type a command", `Runs in ${Apps.terminal[0]}, the window stays open`)];
         return [
             {
                 "key": "run",
                 "title": q,
-                "subtitle": "Run in kitty",
+                "subtitle": "Run in " + Apps.terminal[0],
                 "icon": "",
                 "glyph": "terminal",
                 "run": () => run(q)
