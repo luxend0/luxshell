@@ -385,4 +385,55 @@ Singleton {
         readonly property color actionHover: root.mix(root.island, root.text, 0.2)
         readonly property color separator: root.mix(root.island, root.text, 0.1)
     }
+
+    // ---- workspace overview (Expose; no video frame, drawn in the style of ref/04-06) ----
+    // Every open window as a live preview card, grouped by workspace (small number + hairline
+    // above each group). Groups sit side by side and wrap into rows at maxCols cards; the
+    // panel grows with the window count up to maxCols x maxLines, taller content scrolls.
+    // Header and footer lines are the pickers' (Theme.picker): search left, counter right,
+    // "Enter to focus" bottom right.
+    readonly property QtObject overview: QtObject {
+        readonly property int minWidth: 686        // = launcher / control center (header fits)
+        readonly property real pad: 24             // panel edge -> cards, left and right
+        readonly property real headerY: 38         // search line centre (picker header)
+        readonly property real lensX: 24
+        readonly property real inputX: 57
+        readonly property int gridTop: 74          // first group heading line
+        readonly property int headingHeight: 30    // heading line above a group's cards
+        readonly property real headingY: 9         // heading text centre inside that line
+        readonly property real headingSize: 15
+        readonly property real ruleGap: 12         // number -> hairline
+        readonly property int cardWidth: 288
+        readonly property int thumbHeight: 180     // preview box (16:10), window fitted inside
+        readonly property int labelHeight: 42      // icon + title under the preview
+        readonly property real labelY: 21          // label centre below the preview
+        readonly property int colGap: 16           // cards side by side
+        readonly property int lineGap: 14          // card lines inside one group
+        readonly property int groupGap: 40         // groups side by side
+        readonly property int rowGap: 24           // rows of groups
+        readonly property int maxCols: 5
+        readonly property int maxLines: 3          // visible card lines before scrolling
+        readonly property real edgeFade: 36        // grid edge fades out while more cards are off view
+        readonly property int footerHeight: 54
+        readonly property real footerY: 27         // footer line centre from the panel bottom
+        readonly property real cardRadius: 13
+        readonly property real frame: 2.5          // selection frame (= picker)
+        readonly property real dim: 0.36           // black over every card but the selected one
+        readonly property real shrink: 0.035       // unselected cards are this much smaller
+        readonly property real iconSize: 18
+        readonly property real titleSize: 15
+        readonly property real placeholderIcon: 52 // app icon while the preview has no frame yet
+        readonly property real dotSize: 8          // focused window (like the applied-wallpaper dot)
+        readonly property real dotInset: 13
+        readonly property real closeSize: 26       // close disc, top right of a hovered card
+        readonly property real closeInset: 8
+        readonly property int select: 170          // frame / dim / scale follow the selection
+        readonly property int relayout: 380        // cards slide to new slots (= island panel morph, emphasized)
+        readonly property int stagger: 16          // ms between cards while the panel opens
+        readonly property int reveal: 280
+        readonly property real revealShift: 14
+        readonly property color box: root.mix(root.surface, root.surfaceHigh, 0.45)
+        readonly property color rule: root.mix(root.island, root.text, 0.1)
+        readonly property color closeDisc: root.mix(root.island, root.surfaceHigh, 0.85)
+    }
 }

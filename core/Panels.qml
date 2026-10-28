@@ -59,6 +59,10 @@ Singleton {
             "wallpaper": {
                 "component": wallpaperPicker,
                 "kind": "panel"
+            },
+            "overview": {
+                "component": overview,
+                "kind": "panel"
             }
         })
 
@@ -132,5 +136,9 @@ Singleton {
     Component {
         id: wallpaperPicker
         WallpaperPicker {}
+    }
+    Component {
+        id: overview
+        Overview {}
     }
 }
