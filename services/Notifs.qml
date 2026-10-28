@@ -102,7 +102,11 @@ Singleton {
     function makeEntry(n: var, key: int, old: var): var {
         const icon = iconFor(n);
         // a themed icon passed as image (libnotify does that with actions) is no picture
-        const raw = n.image ?? "";
+        let raw = n.image ?? "";
+        // image-path hints arrive as image://icon/<path>: an absolute path there is a file
+        // (avatar, cover, screenshot), not a themed icon (fix from notif-b)
+        if (raw.startsWith("image://icon//"))
+            raw = "file://" + raw.slice("image://icon/".length);
         const themed = raw.startsWith("image://icon/");
         const image = themed || raw === icon ? "" : raw;
         const actions = [];
