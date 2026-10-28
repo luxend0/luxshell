@@ -18,6 +18,7 @@ import qs.widgets
 //   Enter/Space       toggle / open / pick / edit       Alt+Left/Right  back/forward
 //   Delete/Backspace  remove the folder under the cursor, else reset the option to its default
 //   Ctrl+Backspace    reset the page (toast offers Undo)
+//   Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y  undo / redo in a row with its own history (island editor: undoKey())
 //   PgUp/PgDn, Home/End scroll                          Ctrl+W, Ctrl+Q  close
 // Mouse: everything clickable, sliders drag, wheel scrolls, back/forward buttons.
 FloatingWindow {
@@ -177,6 +178,14 @@ FloatingWindow {
             return;
         }
         const row = host.items[focusIndex];
+        // rows with their own edit history (custom rows with undoKey(redo), the island editor)
+        if (ctrl && (k === Qt.Key_Z || k === Qt.Key_Y)) {
+            const redo = k === Qt.Key_Y || shift;
+            for (const i in host.items)
+                if (host.items[i].call("undoKey", redo) === true)
+                    return;
+            return;
+        }
         if (ctrl && k === Qt.Key_Backspace) {
             if (!searching)
                 header.resetPage();

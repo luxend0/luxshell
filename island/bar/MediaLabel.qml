@@ -10,31 +10,49 @@ import qs.widgets
 // video stays intact. Pointer on cover/text: soft highlight, a title that does not fit
 // scrolls once; click there = openRequested (media panel). The disc toggles playback.
 // textOpacity: the text fades in after the cover while the island opens (like the title).
+// t: 1 = hover sizes (video), 0 = collapsed sizes (Theme.widgets) when the layout puts the
+// chip into the collapsed island.
 Item {
     id: root
 
     property real textOpacity: 1
+    property real t: 1
+    property bool interactive: true
+    property var screen: null
     signal openRequested
 
     readonly property var player: Media.active
     readonly property bool paused: !(player?.isPlaying ?? false)
     readonly property QtObject m: Theme.media
     readonly property QtObject h: Theme.hover
+    readonly property QtObject wm: Theme.widgets
+    function mix(a: real, b: real): real {
+        return a + (b - a) * t;
+    }
+    readonly property real cover: mix(wm.chipCover, m.chipCover)
+    readonly property real button: mix(wm.chipButton, m.chipButton)
+    readonly property real titleSize: Math.round(mix(wm.titleSize, h.titleSize))
 
-    readonly property real textMax: m.chipMaxWidth - m.chipCover - m.chipGap - m.chipButtonsGap - m.chipButton
+    function textMaxAt(maxW: real, cov: real, btn: real): real {
+        return maxW - cov - m.chipGap - m.chipButtonsGap - btn;
+    }
+    readonly property real textMax: textMaxAt(mix(wm.chipMaxWidth, m.chipMaxWidth), cover, button)
     readonly property real overflow: Math.max(0, line.implicitWidth - textMax)
     // soft text edges blend into whatever is behind them (island or the hover highlight)
     readonly property color edge: Theme.mix(Theme.island, m.chipHover, highlight.opacity)
+    // BarWidget contract: width at collapsed / hover sizes
+    readonly property real wC: wm.chipCover + m.chipGap + Math.min(measureC.implicitWidth, textMaxAt(wm.chipMaxWidth, wm.chipCover, wm.chipButton)) + m.chipButtonsGap + wm.chipButton
+    readonly property real wH: m.chipCover + m.chipGap + Math.min(measureH.implicitWidth, textMaxAt(m.chipMaxWidth, m.chipCover, m.chipButton)) + m.chipButtonsGap + m.chipButton
 
-    implicitWidth: m.chipCover + m.chipGap + textBox.width + m.chipButtonsGap + m.chipButton
-    implicitHeight: m.chipCover
+    implicitWidth: cover + m.chipGap + textBox.width + m.chipButtonsGap + button
+    implicitHeight: cover
 
     // highlight while the pointer is on the open area (cover + text)
     Rectangle {
         id: highlight
         x: -root.m.chipPad
         width: open.width + root.m.chipPad + 4
-        height: root.m.chipCover + 12
+        height: root.cover + 12
         anchors.verticalCenter: parent.verticalCenter
         radius: height / 2
         color: root.m.chipHover
@@ -47,8 +65,8 @@ Item {
     }
 
     ClippingRectangle {
-        id: cover
-        width: root.m.chipCover
+        id: coverBox
+        width: root.cover
         height: width
         anchors.verticalCenter: parent.verticalCenter
         radius: root.m.chipCoverRadius
@@ -83,7 +101,7 @@ Item {
     // title + artist; cut off with a soft edge, scrolls once while hovered
     Item {
         id: textBox
-        x: cover.width + root.m.chipGap
+        x: coverBox.width + root.m.chipGap
         width: Math.min(line.implicitWidth, root.textMax)
         height: line.height
         anchors.verticalCenter: parent.verticalCenter
@@ -97,7 +115,7 @@ Item {
             Txt {
                 text: Media.title(root.player)
                 textFormat: Text.PlainText
-                font.pixelSize: root.h.titleSize
+                font.pixelSize: root.titleSize
                 font.weight: Font.DemiBold
             }
             Txt {
@@ -105,7 +123,7 @@ Item {
                 text: Media.artist(root.player)
                 textFormat: Text.PlainText
                 color: Theme.textDim
-                font.pixelSize: root.h.titleSize
+                font.pixelSize: root.titleSize
                 font.weight: Font.Medium
             }
         }
@@ -142,6 +160,27 @@ Item {
                 }
             }
         }
+    }
+
+    // title + artist at both sizes (wC / wH)
+    Row {
+        visible: false
+        spacing: root.m.chipArtistGap
+        Txt {
+            id: measureC
+            text: Media.title(root.player) + "  " + Media.artist(root.player)
+            textFormat: Text.PlainText
+            font.pixelSize: Math.round(root.wm.titleSize)
+            font.weight: Font.DemiBold
+        }
+    }
+    Txt {
+        id: measureH
+        visible: false
+        text: Media.title(root.player) + "  " + Media.artist(root.player)
+        textFormat: Text.PlainText
+        font.pixelSize: Math.round(root.h.titleSize)
+        font.weight: Font.DemiBold
     }
 
     property real scroll: 0
@@ -181,8 +220,9 @@ Item {
     MouseArea {
         id: open
         width: textBox.x + textBox.width
-        height: root.m.chipCover + 12
+        height: root.cover + 12
         anchors.verticalCenter: parent.verticalCenter
+        enabled: root.interactive
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onContainsMouseChanged: {
@@ -208,7 +248,7 @@ Item {
     Rectangle {
         id: toggle
         x: textBox.x + textBox.width + root.m.chipButtonsGap
-        width: root.m.chipButton
+        width: root.button
         height: width
         anchors.verticalCenter: parent.verticalCenter
         radius: width / 2
@@ -224,7 +264,7 @@ Item {
             anchors.centerIn: parent
             anchors.horizontalCenterOffset: root.paused ? 1 : 0
             name: root.paused ? "play" : "pause"
-            size: root.m.chipGlyph
+            size: root.m.chipGlyph * root.button / root.m.chipButton
             filled: true
             stroke: 1.5
             color: Theme.text
@@ -233,6 +273,7 @@ Item {
             id: toggleArea
             anchors.fill: parent
             anchors.margins: -4
+            enabled: root.interactive
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: Media.toggle(root.player)

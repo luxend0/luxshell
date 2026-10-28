@@ -193,7 +193,9 @@ The row sets these properties on your root item if it declares them: `opt` (the 
 `implicitHeight`. Keys are forwarded when your item has the function: `activate()`
 Enter/Space, `adjust(d)` Left/Right, `navigate(d, mods)` Up/Down inside the row (return
 false to leave it), `enter(d)` focus arrives from above (1) / below (-1), `deleteKey()`,
-`focusRect()` `{ y, h }` to keep in view. Example: `pages/DemoZones.qml` (drag to reorder).
+`focusRect()` `{ y, h }` to keep in view, `undoKey(redo)` Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y
+for a row with its own edit history (asked on every row of the page, return true when used;
+`island/IslandEditor.qml`). Example: `pages/DemoZones.qml` (drag to reorder).
 
 Inside your own controls do not write `row: row` (the property shadows the id); name it
 differently (`owner: row`).

@@ -858,4 +858,98 @@ Singleton {
         readonly property real shadowOffset: 3 + 7 * strength  // px down
         readonly property int shadowMargin: shadow ? Math.ceil(shadowBlur + shadowOffset + 4) : 0
     }
+
+    // ---- island layout (island/bar/BarRegistry.qml, island/bar/layout.js, island/widgets) -----
+    // Settings.islandLayout puts widgets into slots; these are the measures the video does not
+    // give: widgets the video only shows in the hover island get collapsed sizes here, new
+    // widgets get both. The default layout uses the collapsed/hover blocks above unchanged.
+    readonly property QtObject widgets: QtObject {
+        // hover island with only one row in use: the top row of ref/02, the bottom one cut away
+        readonly property int oneRowHeight: 64
+        readonly property int oneRowRadius: 32
+        readonly property real oneRowY: 32
+        // a column whose other row is empty is centred between both rows (ref/02 clock + date)
+        readonly property real spanY: root.hover.clockY
+        // island width = default width + (content - default content), clamped
+        readonly property int minWidth: 120
+        readonly property int maxWidth: 1800
+        // at least this much air between the centre column and the sides, measured on what
+        // shows (not for the default layout: the video's 958 px stays, long titles included)
+        readonly property var minGap: [16, 24]
+        // gap between neighbours by widget class: [collapsed, hover]; class pairs are unordered
+        readonly property var gaps: ({
+                "time": [8, root.hover.dateGap],
+                "status": [root.collapsed.statusGap, root.hover.statusGap],
+                "system": [2, 4],                                   // gear + power (IconButtons, 5 px air each)
+                "label": [12, 16],
+                "tray": [8, 10],
+                "tray|status": [12, root.hover.trayGap],
+                "system|label": [14, root.hover.systemGap],
+                "other": [12, 20]                                   // any other pair of classes
+            })
+        // collapsed sizes of widgets the video shows only in the hover island
+        readonly property real titleSize: 15
+        readonly property real appIconSize: 18
+        readonly property real appIconGap: 8
+        readonly property real titleShare: 0.55     // collapsed longest title = this x islandWindowMaxWidth
+        readonly property real notifSize: 15
+        readonly property real bellSize: 17
+        readonly property real notifGap: 9          // label -> bell (hover: 12)
+        readonly property real chipCover: 20
+        readonly property real chipButton: 22
+        readonly property real chipMaxWidth: 220
+        readonly property real systemIconSize: 16
+        readonly property real dateSize: 15
+        // new widgets: glyph + short text, [collapsed, hover]
+        readonly property var textSize: [15, 17]
+        readonly property var iconSize: [17, 20]
+        readonly property var iconGap: [5, 7]
+        // workspace styles (capsules: Theme.collapsed/hover): [collapsed, hover]
+        readonly property var dotSize: [7, 9]
+        readonly property var dotActive: [16, 22]   // the active dot stretches to a short pill
+        readonly property var dotStep: [13, 17]
+        readonly property var numberSize: [14, 17]
+        readonly property var numberStep: [17, 22]
+        // where hover-only parts start while the island is still collapsed (ref/03), as a share
+        // of their rest line: top row 14 / 32 (Theme.hover.topStartY / row1Y)
+        readonly property real startShare: root.hover.topStartY / root.hover.row1Y
+        readonly property int reflow: 220           // neighbours slide when a slot changes
+    }
+
+    // ---- island editor (apps/settings/island, "Bar & Island" page) -------------------------------
+    // A strip per state with the real island hanging from its top edge at preview scale, the
+    // widget palette below, the options of the picked widget next to it. Monochrome, no chrome.
+    readonly property QtObject islandEditor: QtObject {
+        readonly property int segHeight: 32         // Collapsed | Hover | Both
+        readonly property int segRadius: 10
+        readonly property int segPad: 14
+        readonly property int stripRadius: 14
+        readonly property int stripPadTop: 0        // the island hangs from the strip's top edge
+        readonly property int stripPadBottom: 22
+        readonly property int stripGap: 10
+        readonly property int captionSize: 12
+        readonly property real maxScale: 0.72
+        readonly property int chipHeight: 34
+        readonly property int chipRadius: 10
+        readonly property int chipPad: 11
+        readonly property int chipIcon: 16
+        readonly property int chipGap: 8
+        readonly property int optionsWidth: 268
+        readonly property int panelRadius: 14
+        readonly property int panelPad: 16
+        readonly property int caret: 3              // insertion marker width
+        readonly property int dragThreshold: 6
+        readonly property int selectPad: 5          // selection ring around a widget
+        readonly property real dropOut: 34          // px beyond a strip that still counts as inside
+        readonly property color strip: root.mix(root.island, root.surfaceHigh, 0.9)
+        readonly property color stripEdge: root.mix(root.island, root.surfaceHigh, 0.55)
+        readonly property color slot: root.mix(root.surfaceHigh, root.text, 0.10)
+        readonly property color slotHot: root.mix(root.surfaceHigh, root.text, 0.22)
+        readonly property color caretColor: root.accent
+        readonly property color ring: root.textSecondary
+        readonly property color chip: root.settings.field
+        readonly property color chipHover: root.mix(root.settings.field, root.text, 0.1)
+        readonly property color chipUsed: root.mix(root.settings.field, root.text, 0.04)
+        readonly property color remove: root.settings.danger
+    }
 }

@@ -3,182 +3,272 @@ import qs.config
 import qs.core
 import qs.services
 import qs.widgets
+import qs.island.widgets
 
-// Content of the island when no panel is shown, ONE layout for collapsed and hover.
-// Shared elements (workspaces, clock, signal, volume) move and scale between their
-// collapsed and hover rest positions; hover-only elements fade in late.
+// Content of the island when no panel is shown, rendered from the layout
+// (Settings.islandLayout via island/bar/BarRegistry.qml). One BarWidget per widget id;
+// a widget in both states moves and scales between its collapsed and hover rest places,
+// hover-only widgets fade in late, collapsed-only ones fade out early (BarWidget.qml).
+// The default layout is the video's island, pixel for pixel.
 //
 // Driven by the island's content progress (Island.cxp/cyp/wyp, config/Motion.qml):
 //   pw  horizontal progress (positions, clock size)   ph  vertical progress (rows, sizes)
 //   pr  vertical progress of the workspace row (trails ph in both directions)
 // While opening, the content trails the shape; while closing it moves with it.
-// Each element follows its own lagged copy q = p^k (Motion.lag), so the elements
-// at the front of the motion lead (ref/14: signal before volume, inner capsule first).
-// Shared elements are placed relative to the island centre, independent of the
-// animated body width (the body clips); the hover-only top row rides the edges.
+// Shared widgets are placed relative to the island centre, independent of the animated
+// body width (the body clips); hover-only widgets ride the edges or their neighbours.
+//
+// The settings editor renders the same component (preview: true, fixed progress, its own
+// layout while dragging, ghostId drawn translucent).
 Item {
-    id: bar
+    id: content
 
     property real pw: 0
     property real ph: 0
     property real pr: 0
     property real topAlpha: 0 // own animation in Island: late in, out at once
     property var screen: null
-    readonly property bool holdOpen: tray.openMenus > 0
+    property var layout: BarRegistry.layout
+    property bool preview: false
+    property string ghostId: ""
+    readonly property bool holdOpen: (items["tray"]?.w?.openMenus ?? 0) > 0
 
-    readonly property QtObject c: Theme.collapsed
-    readonly property QtObject h: Theme.hover
-    readonly property var lag: Motion.lag
-    readonly property var reveal: Motion.reveal
-    readonly property real statusOpacity: mix(c.statusOpacity, h.statusOpacity, pw)
-
-    function mix(a: real, b: real, t: real): real {
-        return a + (b - a) * t;
-    }
-    // x for a point given relative to the island centre in both layouts
-    function cx(relC: real, relH: real, t: real): real {
-        return width / 2 + mix(relC, relH, t);
+    // rest places glide on layout changes, not while the first layout settles
+    property bool animate: false
+    Timer {
+        running: true
+        interval: 700
+        onTriggered: content.animate = true
     }
 
-    // ---- left: workspaces (row 2 in hover) ---------------------------------
-    Workspaces {
-        anchors.fill: parent
-        screen: bar.screen
-        pw: bar.pw
-        ps: Motion.lagged(bar.pr, bar.lag.workspacesSize)
-        cy: bar.mix(bar.c.centerY, bar.h.row2Y, bar.pr)
+    // ---- island size per state (BarRegistry: default size + content delta) ----------------
+    readonly property real wC: stateWidth(layout, "collapsed")
+    readonly property real wH: stateWidth(layout, "hover")
+    readonly property real hC: BarRegistry.height(layout, "collapsed")
+    readonly property real hH: BarRegistry.height(layout, "hover")
+    readonly property real rC: BarRegistry.radius(layout, "collapsed")
+    readonly property real rH: BarRegistry.radius(layout, "hover")
+    readonly property bool hoverEmpty: BarRegistry.hoverRows(layout) === 0
+
+    // ---- plans with the live widths of the widgets -----------------------------------------
+    property var widths: ({})
+    function report(id: string, wc: real, wh: real): void {
+        const cur = widths[id];
+        if (cur && cur[0] === wc && cur[1] === wh)
+            return;
+        const n = Object.assign({}, widths);
+        n[id] = [wc, wh];
+        widths = n;
+    }
+    function widthOf(id: string, state: string): real {
+        if (id === "spacer")
+            return Settings.islandSpacerWidth;
+        const w = widths[id];
+        return w ? w[state === "collapsed" ? 0 : 1] : BarRegistry.reserve(id, state, BarRegistry.opts(false));
+    }
+    // default size + content delta (BarRegistry), widened when what shows needs more air
+    // (never for the default layout: the video's widths stay exact)
+    function stateWidth(lay: var, state: string): real {
+        const base = BarRegistry.width(lay, state);
+        if (BarRegistry.isDefaultLayout(lay) || (state === "hover" && BarRegistry.hoverRows(lay) === 0))
+            return base;
+        return Math.min(Theme.widgets.maxWidth, Math.max(base, BarRegistry.liveMinWidth(lay, state, (id, s) => content.widthOf(id, s))));
+    }
+    function planFor(lay: var, state: string): var {
+        return BarRegistry.lib().plan(lay, state, BarRegistry.env((id, s) => content.widthOf(id, s)), stateWidth(lay, state));
+    }
+    readonly property var planC: planFor(layout, "collapsed")
+    readonly property var planH: planFor(layout, "hover")
+
+    // ---- live widgets (followers ride their neighbours) ---------------------------------------
+    property var items: ({})
+    function register(id: string, item: Item): void {
+        const n = Object.assign({}, items);
+        n[id] = item;
+        items = n;
+    }
+    function unregister(id: string, item: Item): void {
+        if (items[id] !== item)
+            return;
+        const n = Object.assign({}, items);
+        delete n[id];
+        items = n;
     }
 
-    // ---- centre: clock, date joins on hover (group stays centred) ----------
-    MorphText {
-        id: clock
-        readonly property real cx: bar.cx(0, -(bar.h.dateGap + date.implicitWidth) / 2, bar.pw)
-        readonly property real cy: bar.mix(bar.c.centerY, bar.h.clockY, Motion.lagged(bar.ph, bar.lag.clockY))
-        readonly property real baseY: cy + visualCapHeight / 2
-        text: Clock.time
-        size: bar.mix(bar.c.clockSize, bar.h.clockSize, bar.pw)
-        font.weight: Font.Medium
-        x: cx - width / 2
-        y: cy - anchorY
-    }
-    Txt {
-        id: date
-        // shrinks with the clock, baseline on the clock's baseline
-        readonly property real sc: clock.size / bar.h.clockSize
-        visible: opacity > 0.001
-        opacity: Motion.smooth(bar.pw, bar.reveal.date)
-        text: Clock.date
-        color: Theme.textDim
-        font.pixelSize: bar.h.dateSize
-        font.weight: Font.Medium
-        scale: sc
-        transformOrigin: Item.Left
-        x: clock.cx + clock.visualWidth / 2 + bar.h.dateGap * sc
-        y: clock.baseY - height / 2 - (baselineOffset - height / 2) * sc
+    // whom a widget shown in one state only rides: the nearest widget shown in both states
+    // toward its slot's edge (in the centre: either side, the left first; the date rides the
+    // clock), else nobody (it rides the island edge / the centre). Never another one-state
+    // widget, so no chain of riders can loop while a plan changes.
+    //   { key, side: "after" (rides on its right) | "before", offset: planned distance }
+    function followTarget(state: string, key: string): var {
+        const p = state === "collapsed" ? planC : planH;
+        const other = state === "collapsed" ? planH : planC;
+        const it = p.items[key];
+        if (!it)
+            return null;
+        const walk = (dir, side) => {
+            let k = it[dir];
+            let adjacent = true;
+            while (k) {
+                const n = p.items[k];
+                if (!n)
+                    return null;
+                if (other.items[k])
+                    return {
+                        "key": k,
+                        "side": side,
+                        // exact gap for a direct neighbour (the video's tray / date offsets)
+                        "offset": adjacent ? (side === "after" ? it.lead : it.trail) : side === "after" ? it.x - (n.x + n.w) : n.x - (it.x + it.w)
+                    };
+                adjacent = false;
+                k = n[dir];
+            }
+            return null;
+        };
+        if (it.col === "left")
+            return walk("prev", "after");
+        if (it.col === "right")
+            return walk("next", "before");
+        return walk("prev", "after") ?? walk("next", "before");
     }
 
-    // ---- right: volume + signal (row 2 in hover, dimmed) --------------------
-    Icon {
-        id: volume
-        readonly property real rightX: bar.cx(bar.c.width / 2 - bar.c.padRight, bar.h.width / 2 - bar.h.padRight, Motion.lagged(bar.pw, bar.lag.volumeX))
-        name: Audio.icon
-        size: bar.mix(bar.c.volumeSize, bar.h.volumeSize, bar.ph)
-        color: Theme.text
-        opacity: bar.statusOpacity
-        x: rightX - width
-        y: bar.mix(bar.c.statusY, bar.h.statusY, Motion.lagged(bar.ph, bar.lag.volumeY)) - height / 2
+    // visible widget under a point (bar coordinates)
+    function widgetAt(px: real, py: real): var {
+        for (const id in items) {
+            const it = items[id];
+            if (!it.shown || it.fills)
+                continue;
+            if (px >= it.hitX - 6 && px <= it.hitX + it.hitW + 6 && py >= it.hitY - 6 && py <= it.hitY + it.hitH + 6)
+                return it;
+        }
+        return null;
     }
-    SignalBars {
-        id: signal
-        // rest: right-aligned in front of the volume glyph
-        readonly property real relC: bar.c.width / 2 - bar.c.padRight - bar.c.volumeSize - bar.c.statusGap
-        readonly property real relH: bar.h.width / 2 - bar.h.padRight - bar.h.volumeSize - bar.h.statusGap
-        readonly property real cy: bar.mix(bar.c.statusY, bar.h.statusY, Motion.lagged(bar.ph, bar.lag.signalY))
-        p: bar.ph
-        opacity: bar.statusOpacity
-        x: bar.cx(relC, relH, Motion.lagged(bar.pw, bar.lag.signalX)) - width
-        y: cy - height / 2
+
+    // ---- scroll: on the volume glyph always volume, elsewhere Settings.islandScrollAction ------
+    function scrolled(dy: real, px: real, py: real): void {
+        if (dy === 0)
+            return;
+        const it = widgetAt(px, py);
+        const action = it && it.w && it.w.wantsVolumeScroll ? "volume" : Settings.islandScrollAction;
+        if (action === "volume") {
+            Audio.step(dy > 0 ? 0.05 : -0.05);
+        } else if (action === "workspaces") {
+            const cur = Hypr.activeFor(content.screen);
+            const next = Math.max(1, Math.min(Hypr.count, cur + (dy > 0 ? -1 : 1)));
+            if (next !== cur)
+                Hypr.focus(next);
+        }
     }
-    // scroll over signal + volume = volume; the handler is the only writer to the sink
-    Item {
-        x: signal.x - 6
-        y: Math.min(signal.y, volume.y) - 6
-        width: volume.x + volume.width - x + 6
-        height: Math.max(signal.y + signal.height, volume.y + volume.height) - y + 6
-        WheelHandler {
-            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-            onWheel: e => Audio.step(e.angleDelta.y > 0 ? 0.05 : -0.05)
+    WheelHandler {
+        enabled: !content.preview
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        onWheel: e => content.scrolled(e.angleDelta.y, point.position.x, point.position.y)
+    }
+
+    // ---- widgets ------------------------------------------------------------------------------
+    Repeater {
+        model: BarRegistry.widgets.filter(w => w.id !== "spacer")
+
+        BarWidget {
+            bar: content
         }
     }
 
-    // ---- hover only: top row rides the island edges -------------------------
-    // while a player has a track the media chip takes the window title's slot (cross-fade)
-    property real mediaIn: Media.hasTrack ? 1 : 0
-    Behavior on mediaIn {
-        Anim {
-            ms: Theme.media.swap
+    readonly property var components: ({
+            "workspaces": cWorkspaces,
+            "clock": cClock,
+            "date": cDate,
+            "window": cWindow,
+            "media": cMedia,
+            "notifications": cNotifications,
+            "network": cNetwork,
+            "volume": cVolume,
+            "tray": cTray,
+            "settings": cSettings,
+            "power": cPower,
+            "battery": cBattery,
+            "weather": cWeather,
+            "cpu": cCpu,
+            "ram": cRam,
+            "keyboard": cKeyboard
+        })
+
+    Component {
+        id: cWorkspaces
+        Workspaces {
+            style: Settings.islandWorkspaceStyle
         }
     }
-
-    WindowLabel {
-        textOpacity: Motion.smooth(bar.pw, bar.reveal.topText)
-        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon) * (1 - bar.mediaIn)
-        visible: opacity > 0.001
-        x: bar.mix(bar.h.topStartLeft, bar.h.padLeft, bar.pw)
-        y: notif.cy - height / 2
+    Component {
+        id: cClock
+        ClockWidget {}
     }
-
-    MediaLabel {
-        textOpacity: Motion.smooth(bar.pw, bar.reveal.topText)
-        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon) * bar.mediaIn
-        visible: opacity > 0.001
-        enabled: bar.mediaIn > 0.5
-        x: bar.mix(bar.h.topStartLeft, bar.h.padLeft, bar.pw)
-        y: notif.cy - height / 2
-        onOpenRequested: Ui.open("media", bar.screen ? bar.screen.name : undefined)
+    Component {
+        id: cDate
+        DateWidget {}
     }
-
-    NotifStatus {
-        id: notif
-        readonly property real cy: bar.mix(bar.h.topStartY, bar.h.row1Y, Motion.lagged(bar.ph, bar.lag.topY))
-        textOpacity: Motion.smooth(bar.pw, bar.reveal.topText)
-        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.topIcon)
-        visible: opacity > 0.001
-        x: bar.width - bar.mix(bar.h.topStartRight, bar.h.padRight, bar.pw) - width
-        y: cy - height / 2
-        onOpenRequested: Ui.open("notifications", bar.screen ? bar.screen.name : undefined)
+    Component {
+        id: cWindow
+        WindowLabel {}
     }
-
-    // ---- hover only: extras, last in and first out ---------------------------
-    Row {
-        id: system
-        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.extras)
-        visible: opacity > 0.001
-        spacing: 4
-        x: notif.x - bar.h.systemGap - width
-        y: notif.cy - height / 2
-
-        IconButton {
-            icon: "settings"
-            size: bar.h.systemIconSize
-            color: Theme.text
-            restOpacity: 0.6
-            onClicked: Ui.toggle("settings")
-        }
-        IconButton {
-            icon: "power"
-            size: bar.h.systemIconSize
-            color: Theme.danger
-            restOpacity: 0.85
-            onClicked: Ui.toggle("powermenu")
+    Component {
+        id: cMedia
+        MediaLabel {
+            onOpenRequested: Ui.open("media", content.screen ? content.screen.name : undefined)
         }
     }
-
-    TrayRow {
-        id: tray
-        opacity: bar.topAlpha * Motion.smooth(bar.pw, bar.reveal.extras)
-        visible: opacity > 0.001
-        x: signal.x - bar.h.trayGap - width
-        y: signal.cy - height / 2
+    Component {
+        id: cNotifications
+        NotifStatus {
+            onOpenRequested: Ui.open("notifications", content.screen ? content.screen.name : undefined)
+        }
+    }
+    Component {
+        id: cNetwork
+        NetworkWidget {}
+    }
+    Component {
+        id: cVolume
+        VolumeWidget {}
+    }
+    Component {
+        id: cTray
+        TrayRow {}
+    }
+    Component {
+        id: cSettings
+        SystemButton {
+            kind: "settings"
+        }
+    }
+    Component {
+        id: cPower
+        SystemButton {
+            kind: "power"
+        }
+    }
+    Component {
+        id: cBattery
+        BatteryWidget {}
+    }
+    Component {
+        id: cWeather
+        WeatherWidget {}
+    }
+    Component {
+        id: cCpu
+        SysmonWidget {
+            kind: "cpu"
+        }
+    }
+    Component {
+        id: cRam
+        SysmonWidget {
+            kind: "ram"
+        }
+    }
+    Component {
+        id: cKeyboard
+        KeyboardWidget {}
     }
 }

@@ -33,6 +33,8 @@ import Quickshell
 //                         default path is never written, only a file named here
 //   LUXSHELL_SOUND_TARGET PipeWire sink for the notification sound (pw-play --target); plays even
 //                         with LUXSHELL_DRYRUN=1 (tests on a null sink), services/Notifs
+//   LUXSHELL_FAKE_WEATHER  wttr.in answer "%x|%t|%C" (e.g. "m|+12°C|Partly cloudy") for the island's
+//                         weather widget instead of asking the network (services/Weather)
 Singleton {
     id: root
 
@@ -50,6 +52,7 @@ Singleton {
     readonly property string lockTestPassword: get("LUXSHELL_LOCK_TEST_PASSWORD")
     readonly property bool settingsDemo: get("LUXSHELL_SETTINGS_DEMO") === "1"
     readonly property string integrationRoot: get("LUXSHELL_INTEGRATION_ROOT")
+    readonly property string fakeWeather: get("LUXSHELL_FAKE_WEATHER")
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
         if (own !== "")

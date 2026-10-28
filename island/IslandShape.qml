@@ -16,6 +16,7 @@ Item {
 
     property real radius: 20
     property real ear: Theme.earRadius
+    property bool floating: false // below the edge (Settings.islandMargin): all corners round, no ears
     property color color: Theme.island
     property bool panel: false
     default property alias content: body.data
@@ -105,8 +106,8 @@ Item {
         id: body
         anchors.fill: parent
         color: root.fill
-        topLeftRadius: 0
-        topRightRadius: 0
+        topLeftRadius: root.floating ? root.r : 0
+        topRightRadius: root.floating ? root.r : 0
         bottomLeftRadius: root.r
         bottomRightRadius: root.r
     }
@@ -116,7 +117,7 @@ Item {
         x: -root.ear
         width: root.ear
         height: root.ear
-        visible: root.ear > 0
+        visible: root.ear > 0 && !root.floating
         preferredRendererType: Shape.CurveRenderer
         ShapePath {
             fillColor: root.fill
@@ -140,7 +141,7 @@ Item {
         x: root.width
         width: root.ear
         height: root.ear
-        visible: root.ear > 0
+        visible: root.ear > 0 && !root.floating
         preferredRendererType: Shape.CurveRenderer
         ShapePath {
             fillColor: root.fill

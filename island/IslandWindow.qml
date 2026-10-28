@@ -16,11 +16,12 @@ PanelWindow {
 
     screen: modelData
     anchors.top: true
-    // * (1 + Motion.overshoot): room for the spring's swing (0 unless motionStyle "spring")
-    implicitWidth: Math.min(modelData.width, Math.max(Theme.hover.width, Panels.maxWidth) * (1 + Motion.overshoot) + 2 * Theme.earRadius + 2 * Theme.look.shadowMargin)
-    implicitHeight: Math.min(modelData.height, Math.max(Theme.hover.height, Panels.maxHeight) * (1 + Motion.overshoot) + 2 + Theme.look.shadowMargin)
+    // * (1 + Motion.overshoot): room for the spring's swing (0 unless motionStyle "spring");
+    // needWidth/needHeight: the configured layout (island-a), shadowMargin: look shadow
+    implicitWidth: Math.min(modelData.width, Math.ceil(Math.max(island.needWidth, Panels.maxWidth) * (1 + Motion.overshoot)) + 2 * Theme.earRadius + 2 * Theme.look.shadowMargin)
+    implicitHeight: Math.min(modelData.height, Math.ceil(Math.max(island.needHeight, Panels.maxHeight + island.margin) * (1 + Motion.overshoot)) + 2 + Theme.look.shadowMargin)
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: Theme.collapsed.height
+    exclusiveZone: island.zone
     color: "transparent"
 
     WlrLayershell.namespace: "luxshell"
