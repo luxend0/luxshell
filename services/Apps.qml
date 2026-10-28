@@ -8,6 +8,8 @@ import "fuzzy.js" as Fuzzy
 //
 // rank(query): fuzzy quality (fuzzy.js) x 100 + usage boost (AppUsage: frecency 0..14,
 // "picked after typing this" 0..18). Empty query: used apps by frecency, then A-Z.
+// Settings (Launcher page): launcherRankUsage off = no usage boost, nothing recorded, empty
+// query A-Z; launcherHiddenApps = desktop ids rank() never returns.
 Singleton {
     id: root
 
@@ -61,14 +63,25 @@ Singleton {
         return entry?.comment ?? "";
     }
 
+    readonly property var hidden: {
+        const h = {};
+        for (const id of Array.from(Settings.launcherHiddenApps ?? []))
+            h[id] = true;
+        return h;
+    }
+
     function rank(query: string): var {
         const p = Fuzzy.prepare(query);
         void AppUsage.revision; // re-rank after launches and external edits
+        const usage = Settings.launcherRankUsage;
+        const hide = hidden;
         if (p.q === "") {
             const used = [];
             const rest = [];
             for (const r of records) {
-                const f = AppUsage.frecency(r.id);
+                if (hide[r.id])
+                    continue;
+                const f = usage ? AppUsage.frecency(r.id) : 0;
                 if (f > 0)
                     used.push({
                         "e": r.entry,
@@ -82,12 +95,14 @@ Singleton {
         }
         const hits = [];
         for (const r of records) {
+            if (hide[r.id])
+                continue;
             const q = Fuzzy.quality(r, p.q, p.tokens);
             if (q <= 0)
                 continue;
             hits.push({
                 "e": r.entry,
-                "s": q * 100 + AppUsage.boost(r.id) + AppUsage.queryBonus(r.id, p.q),
+                "s": q * 100 + (usage ? AppUsage.boost(r.id) + AppUsage.queryBonus(r.id, p.q) : 0),
                 "n": r.name
             });
         }
@@ -125,7 +140,8 @@ Singleton {
         if (dir !== "")
             ctx.workingDirectory = dir;
         Quickshell.execDetached(ctx);
-        AppUsage.record(entry.id, Fuzzy.prepare(query).q);
+        if (Settings.launcherRankUsage)
+            AppUsage.record(entry.id, Fuzzy.prepare(query).q);
         return true;
     }
 

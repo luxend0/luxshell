@@ -14,7 +14,8 @@ import qs.widgets
 //
 // Capture: only while the overview exists (the panel is destroyed on close). The
 // selected / hovered card is live, the others keep the frame captured on open, so a
-// big overview does not stream every window.
+// big overview does not stream every window. previewMode (Settings.overviewPreview):
+// "still" = every card keeps the frame from opening, "icons" = no capture, app icon only.
 Item {
     id: card
 
@@ -23,6 +24,9 @@ Item {
     property string icon: ""
     property bool selected: false
     property bool focusedWindow: false
+    property int cardWidth: g.cardWidth       // Overview scales both (Settings.overviewCardSize)
+    property int thumbHeight: g.thumbHeight
+    property string previewMode: "live"       // live | still | icons
 
     readonly property var g: Theme.overview
     readonly property bool hovered: hover.hovered
@@ -31,8 +35,8 @@ Item {
     signal clicked
     signal closeRequested
 
-    width: g.cardWidth
-    height: g.thumbHeight + g.labelHeight
+    width: cardWidth
+    height: thumbHeight + g.labelHeight
 
     // 0 = unselected look, 1 = selected look; one value drives frame, dim, scale, text
     property real sel: selected ? 1 : 0
@@ -58,8 +62,8 @@ Item {
 
     Item {
         id: thumb
-        width: card.g.cardWidth
-        height: card.g.thumbHeight
+        width: card.cardWidth
+        height: card.thumbHeight
         scale: 1 - card.g.shrink * (1 - card.sel)
 
         ClippingRectangle {
@@ -74,8 +78,9 @@ Item {
                 anchors.centerIn: parent
                 width: Math.min(parent.width, parent.height * ar)
                 height: width / ar
-                captureSource: card.toplevel?.wayland ?? null
-                live: card.selected || card.hovered
+                visible: card.previewMode !== "icons"
+                captureSource: card.previewMode === "icons" ? null : card.toplevel?.wayland ?? null
+                live: card.previewMode === "live" && (card.selected || card.hovered)
                 opacity: hasContent ? 1 : 0
                 Behavior on opacity {
                     Anim {
@@ -157,7 +162,7 @@ Item {
     Row {
         id: label
         x: Math.max(0, (card.width - width) / 2)
-        y: card.g.thumbHeight + card.g.labelY - height / 2
+        y: card.thumbHeight + card.g.labelY - height / 2
         spacing: 8
 
         AppIcon {

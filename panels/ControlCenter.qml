@@ -6,9 +6,10 @@ import qs.services
 import qs.widgets
 import qs.panels.controlcenter
 
-// Control center (ref/08, ref/09, ref/09c). One main page (4 rows, ends after the
-// Display slider; notifications have their own panel); network, Bluetooth, sound and
-// display open as a sheet over it:
+// Control center (ref/08, ref/09, ref/09c). One main page (default 4 rows, ends after the
+// Display slider; notifications have their own panel; tiles, sliders and their order come
+// from Settings.cc*, packed by controlcenter/CcLayout, the height follows the rows);
+// network, Bluetooth, sound and display open as a sheet over it:
 //
 //   open   the main page dims (black, Theme.cc.sheet.dim), the sheet grows out of
 //          the tile / card that opened it (container transform: rect, radius),
@@ -56,8 +57,8 @@ PanelBase {
     readonly property int sheetBox: sheetTarget + 2 * sh.inset
 
     preferredWidth: Theme.cc.width
-    preferredHeight: tall ? Math.max(Theme.cc.height, sheetBox) : Theme.cc.height
-    maxHeight: Theme.cc.maxHeight
+    preferredHeight: tall ? Math.max(CcLayout.height, sheetBox) : CcLayout.height
+    maxHeight: Math.max(Theme.cc.maxHeight, CcLayout.height)
     cornerRadius: Theme.cc.radius
 
     function lerp(a: real, b: real, t: real): real {
@@ -84,7 +85,15 @@ PanelBase {
         if (page === "main")
             returnTo = Cc.current;
         origin = originFor(id);
-        if (origin) {
+        if (!origin) { // its tile is not shown (Settings.ccTiles): out of the panel's top centre
+            from = {
+                "x": (width - Theme.cc.row) / 2,
+                "y": Theme.cc.pad,
+                "w": Theme.cc.row,
+                "h": Theme.cc.row,
+                "r": Theme.cc.row / 2
+            };
+        } else {
             const p = origin.mapToItem(root, 0, 0);
             from = {
                 "x": p.x,
@@ -139,6 +148,11 @@ PanelBase {
         Cc.kb = false;
         Brightness.refresh(false);
         Brightness.pickPrimary(Ui.panelScreen);
+        // quick tiles read their state once per opening (only when shown), no polling
+        if (CcLayout.keys.includes("nightlight"))
+            NightLight.refresh();
+        if (CcLayout.keys.includes("power"))
+            PowerProfile.refresh();
         const start = CcNav.take() || startPage || Env.get("LUXSHELL_CC_PAGE");
         if (start !== "")
             go(start, false);
@@ -212,7 +226,7 @@ PanelBase {
     property real sheetH: sheetTarget
     // where the landed sheet sits: below the inset when the panel grew for it, else centred
     // in the main page
-    readonly property real sheetY: sheetBox >= Theme.cc.height ? sh.inset : Math.round((Theme.cc.height - sheetH) / 2)
+    readonly property real sheetY: sheetBox >= CcLayout.height ? sh.inset : Math.round((CcLayout.height - sheetH) / 2)
     Behavior on sheetH {
         enabled: root.settled
         NumberAnimation {

@@ -810,4 +810,16 @@ Singleton {
         readonly property color ring: root.textSecondary
         readonly property color scrollbarColor: root.mix(root.island, root.textDim, 0.6)
     }
+
+    // ---- configurable control center grid (panels/controlcenter/CcLayout, Settings.cc*) ---------
+    // Rows keep the measured cc metrics: tiles in a row share the width left by the round
+    // buttons (2 tiles + lock = 270 each, 2 tiles = 317 each, as in ref/08). A row takes up to
+    // maxTiles tiles; round buttons join it while every tile stays at least minTile wide.
+    readonly property QtObject ccLayout: QtObject {
+        readonly property int maxTiles: 2
+        readonly property int minTile: 220        // title + state still fit (textX 84 + ~120)
+        readonly property int relayout: 380       // tiles glide to new slots when the layout changes
+        // settings preview (apps/settings/pages/CcPreview.qml)
+        readonly property real previewScale: 0.6
+    }
 }

@@ -71,18 +71,47 @@ Singleton {
     // ---- motion* : Motion (animations, hover delays) ----
 
     // ---- launcher* : Launcher (modes, prefixes) ----
+    // panels/Launcher + services/Apps; terminal, searchEngine, webResults above keep their names
+    property var launcherProviders: ["calc", "apps", "windows", "commands", "web"] // enabled modes, in result order: calc apps windows commands web
+    property var launcherPrefixes: ({ "calc": "=", "windows": "w ", "commands": ">", "web": "?" }) // text that switches the field to one mode
+    property int launcherRows: 6 // result rows before the list scrolls (Theme.launcher.visibleRows)
+    property bool launcherRankUsage: true // used apps rank higher (services/AppUsage); off = match quality, then A-Z
+    property var launcherHiddenApps: [] // desktop entry ids the launcher never lists
 
     // ---- notif* : Notifications (focus schedule, app exceptions) ----
+    property bool notifCenterGroup: true // notification center: one group per app (folded stacks); off = newest first, one header per run of the same app
+    property int notifCenterMaxHeight: 760 // px the notification center may grow to, then it scrolls (Theme.nc.maxHeight)
 
     // ---- cc* : Control Center (tiles, order) ----
+    // panels/controlcenter/CcLayout packs them: up to two tiles per row (round buttons join a
+    // row while the tiles stay >= Theme.ccLayout.minTile wide), then one slider per row
+    property var ccTiles: ["network", "focus", "lock", "bluetooth", "gamemode"] // tiles + round buttons in reading order (CcLayout.catalog)
+    property var ccSliders: ["sound", "display"] // slider cards below the tiles: sound display mic
+    property int ccNightTemp: 4000 // K, night light tile (wlsunset)
+    property string ccScreenshotMode: "region" // screenshot button: region (slurp) | screen
+    property string ccScreenshotDir: "~/Pictures/Screenshots" // screenshot button saves here (and copies to the clipboard)
+    property string ccThemeA: "noir" // theme button switches between A and B (B = on)
+    property string ccThemeB: "wallpaper"
 
     // ---- media* : Media panel ----
+    property bool mediaChip: true // media chip in the hover island while a player has a track (Media.hasTrack)
+    property string mediaPreferred: "" // player key (Media.playerKey) shown first, "" = the one that played last
+    property var mediaHidden: [] // player keys luxshell ignores (no chip, no panel, no player pill)
 
     // ---- lock* : Lock Screen ----
 
     // ---- wallpaper* : Wallpaper ----
+    property bool wallpaperVideos: true // wallpaper picker lists videos (mp4, webm, ...) next to images
 
     // ---- keys* : Keybinds (outside luxshell, opt-in, default off) ----
+
+    // ---- overview* : Workspace overview (panels/Overview) ----
+    property string overviewPreview: "live" // live (selected / hovered card streams) | still (frames from opening) | icons (no capture)
+    property bool overviewGroup: true // cards grouped per workspace under a heading; off = one grid
+    property real overviewCardSize: 1 // card scale, 0.7 .. 1.4 (Theme.overview card sizes)
+
+    // ---- picker* : Theme and wallpaper picker ----
+    property bool pickerThemePreview: true // theme picker shows the highlighted theme live on the island
 
     // ---- integration* : apps theme, Hyprland look (outside luxshell, opt-in, default off) ----
 

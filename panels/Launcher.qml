@@ -13,7 +13,9 @@ import qs.panels.launcher
 //
 // Providers (panels/launcher/*Provider.qml) only turn a query into entries; this
 // file owns layout, selection and keys. The reported height follows the number
-// of rows, so the island resizes while typing.
+// of rows, so the island resizes while typing. Which modes run and in which order
+// (Settings.launcherProviders), their prefixes (launcherPrefixes, read by the providers)
+// and the visible rows (launcherRows) come from the settings app's Launcher page.
 //
 // Keys: Up/Down, Tab/Shift+Tab (wrap), PgUp/PgDn, Ctrl+N/P, Ctrl+J/K, Enter,
 // Esc (PanelHost). Mouse: hover selects, click runs, wheel scrolls.
@@ -22,17 +24,41 @@ PanelBase {
 
     readonly property var lt: Theme.launcher
 
-    readonly property list<Provider> providers: [
-        CalcProvider {},
-        AppsProvider {},
-        WindowsProvider {},
-        CommandProvider {},
-        WebProvider {}
-    ]
+    CalcProvider {
+        id: calcProvider
+    }
+    AppsProvider {
+        id: appsProvider
+    }
+    WindowsProvider {
+        id: windowsProvider
+    }
+    CommandProvider {
+        id: commandProvider
+    }
+    WebProvider {
+        id: webProvider
+    }
+    readonly property var catalog: ({
+            "calc": calcProvider,
+            "apps": appsProvider,
+            "windows": windowsProvider,
+            "commands": commandProvider,
+            "web": webProvider
+        })
+    // enabled modes in result order (Settings.launcherProviders)
+    readonly property var providers: {
+        const out = [];
+        for (const id of Array.from(Settings.launcherProviders))
+            if (catalog[id] && !out.includes(catalog[id]))
+                out.push(catalog[id]);
+        return out;
+    }
+    readonly property int visibleRows: Math.max(1, Settings.launcherRows)
 
     readonly property Provider mode: modeFor(search.text)
     readonly property var results: probe ? [] : collect(search.text, mode)
-    readonly property int rows: Math.max(1, Math.min(results.length, lt.visibleRows))
+    readonly property int rows: Math.max(1, Math.min(results.length, visibleRows))
     property int selected: 0
     property string selectedKey: ""   // entry key of `selected`
     property bool userMoved: false    // selection picked by key/pointer since the query changed
@@ -43,17 +69,19 @@ PanelBase {
 
     preferredWidth: lt.width
     preferredHeight: lt.listTop + rows * lt.rowHeight + lt.padBottom
-    maxHeight: lt.listTop + lt.visibleRows * lt.rowHeight + lt.padBottom
+    maxHeight: lt.listTop + visibleRows * lt.rowHeight + lt.padBottom
 
     function focusDefault() {
         search.forceActiveFocus();
     }
 
+    // the longest matching prefix wins (user prefixes may share a start: "=" and "==")
     function modeFor(text: string): Provider {
+        let best = null;
         for (const p of providers)
-            if (p.prefix !== "" && text.startsWith(p.prefix))
-                return p;
-        return null;
+            if (p.prefix !== "" && text.startsWith(p.prefix) && (!best || p.prefix.length > best.prefix.length))
+                best = p;
+        return best;
     }
 
     function collect(text: string, mode: Provider): var {
@@ -172,7 +200,7 @@ PanelBase {
     }
     Timer {
         running: true
-        interval: 60 + root.lt.visibleRows * root.lt.stagger
+        interval: 60 + root.visibleRows * root.lt.stagger
         onTriggered: root.revealing = false
     }
 
@@ -226,10 +254,10 @@ PanelBase {
                     root.move(-1, true);
                     break;
                 case Qt.Key_PageDown:
-                    root.move(root.lt.visibleRows, false);
+                    root.move(root.visibleRows, false);
                     break;
                 case Qt.Key_PageUp:
-                    root.move(-root.lt.visibleRows, false);
+                    root.move(-root.visibleRows, false);
                     break;
                 case Qt.Key_Return:
                 case Qt.Key_Enter:
@@ -321,7 +349,7 @@ PanelBase {
 
         delegate: ResultRow {
             width: list.width
-            reveal: root.revealing && index < root.lt.visibleRows
+            reveal: root.revealing && index < root.visibleRows
             onHovered: global => root.hoverSelect(index, global)
             onActivated: root.activate(index)
         }

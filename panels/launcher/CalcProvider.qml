@@ -1,10 +1,11 @@
 import QtQuick
 import Quickshell
+import qs.config
 import qs.services
 
 // "12*7" -> first row "84", Enter copies the result (wl-copy). "=" forces the mode.
 Provider {
-    prefix: "="
+    prefix: Settings.launcherPrefixes?.calc ?? "=" // settings app, Launcher page
     label: "Calculator"
     glyph: "calculator"
     limit: 1

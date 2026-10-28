@@ -6,7 +6,7 @@ import qs.services
 // Last row of every non-empty search: open the query in the default browser.
 // "?" forces the mode.
 Provider {
-    prefix: "?"
+    prefix: Settings.launcherPrefixes?.web ?? "?" // settings app, Launcher page
     label: "Web search"
     glyph: "globe"
     limit: 1

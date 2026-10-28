@@ -21,6 +21,14 @@ Singleton {
         save();
     }
 
+    // settings app, Launcher page "Clear history"
+    function clear(): void {
+        if (commands.length === 0)
+            return;
+        adapter.commands = [];
+        save();
+    }
+
     function save(): void {
         mkdir.running = true; // writeAdapter() once the directory exists
     }

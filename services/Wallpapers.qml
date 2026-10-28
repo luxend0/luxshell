@@ -8,6 +8,7 @@ import qs.config
 //
 //   scan()      images + videos in Settings.wallpaperDirs (default ~/Pictures/Wallpapers and
 //               ~/.local/share/luxos), 4 levels deep, symlinks followed, hidden entries skipped.
+//               Settings.wallpaperVideos off: images only (rescans when it changes).
 //               Read only: nothing in those folders is ever written.
 //   thumbnails  <cacheDir>/thumbs/<md5(path|mtime|size)>.jpg, 500x300 (5:3 like the picker cards).
 //               ONE background job works through the missing ones, nearest to the applied
@@ -78,13 +79,26 @@ Singleton {
             rescan = true;
             return;
         }
-        const names = [...imageExt, ...videoExt];
+        const names = Settings.wallpaperVideos ? [...imageExt, ...videoExt] : imageExt;
         const match = [];
         names.forEach((e, i) => match.push(...(i > 0 ? ["-o"] : []), "-iname", "*." + e));
         finder.command = ["find", "-L", ...dirs, "-mindepth", "1", "-maxdepth", "4", "(", "-name", ".*", "-prune", ")", "-o", "-type", "f", "(", ...match, ")", "-printf", "%T@\\t%s\\t%p\\n"];
         finder.running = true;
     }
     property bool rescan: false
+
+    // the list follows the settings at once (the picker may be open)
+    Connections {
+        target: Settings
+        function onWallpaperVideosChanged() {
+            if (root.scanned)
+                root.scan();
+        }
+        function onWallpaperDirsChanged() {
+            if (root.scanned)
+                root.scan();
+        }
+    }
 
     function parse(text: string): void {
         const seen = {};

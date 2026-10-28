@@ -22,6 +22,7 @@ Singleton {
         Wallpaper {},
         Motion {},
         Launcher {},
+        OverviewPickers {},
         Notifications {},
         ControlCenter {},
         LockScreen {},

@@ -75,6 +75,29 @@ SettingsPage {
                     "run": () => Notifs.clear()
                 }
             ]
+        },
+        {
+            "title": "Notification center",
+            "options": [
+                {
+                    "id": "notifCenterGroup",
+                    "kind": "switch",
+                    "key": "notifCenterGroup",
+                    "label": "Group per app (off: newest first)",
+                    "keywords": "group stack fold app notification center history list"
+                },
+                {
+                    "id": "notifCenterMaxHeight",
+                    "kind": "slider",
+                    "key": "notifCenterMaxHeight",
+                    "label": "Maximum height (then it scrolls)",
+                    "keywords": "notification center height size scroll tall",
+                    "min": 400,
+                    "max": 1100,
+                    "step": 20,
+                    "format": v => `${Math.round(v)} px`
+                }
+            ]
         }
     ]
 }

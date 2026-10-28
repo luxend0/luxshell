@@ -1,12 +1,13 @@
 import QtQuick
 import Quickshell.Hyprland
+import qs.config
 import qs.services
 
 // "w " lists open windows (Hyprland.toplevels), most recently focused first; the
 // focused window goes last (switching to it is a no-op). Enter focuses through
 // the Lua dispatcher: hl.dsp.focus({window="address:0x..."}).
 Provider {
-    prefix: "w "
+    prefix: Settings.launcherPrefixes?.windows ?? "w " // settings app, Launcher page
     inDefault: false
     label: "Windows"
     glyph: "app-window"

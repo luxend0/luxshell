@@ -69,7 +69,10 @@ then one line in `Catalog.qml` `sources`, at its sidebar position. A page withou
 (or `hidden: true`) stays out of the sidebar and search. Timers, Processes and Components
 the page needs go straight inside it (see `pages/Motion.qml`, `pages/Launcher.qml`).
 Existing pages: `BarIsland, Media, ClockDate, Appearance, Wallpaper, Motion, Launcher,
-Notifications, ControlCenter, LockScreen, Keybinds, Integrations, System, Demo`.
+OverviewPickers, Notifications, ControlCenter, LockScreen, Keybinds, Integrations, System, Demo`.
+Reusable custom rows in `pages/`: `HiddenList.qml` (ids to exclude, "Add" opens a filterable
+dropdown: launcher apps, media players), `CcPreview.qml` (the control center's real main page,
+scaled down, live).
 
 ## Key prefixes per area
 
@@ -82,6 +85,8 @@ Notifications, ControlCenter, LockScreen, Keybinds, Integrations, System, Demo`.
 | `notif*` | Notifications (focus schedule, app exceptions) |
 | `cc*` | Control Center (tiles, order) |
 | `media*` | Media |
+| `overview*` | Overview & Pickers (workspace overview) |
+| `picker*` | Overview & Pickers (theme / wallpaper picker; `wallpaperVideos` keeps the wallpaper prefix) |
 | `lock*` | Lock Screen |
 | `wallpaper*` | Wallpaper |
 | `keys*` | Keybinds (outside luxshell, default off) |

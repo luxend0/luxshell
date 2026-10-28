@@ -82,6 +82,17 @@ Singleton {
         saveTimer.restart();
     }
 
+    readonly property int count: Object.keys(apps).length
+
+    // forget every launch (settings app, Launcher page "Clear history")
+    function clear(): void {
+        if (Object.keys(apps).length === 0)
+            return;
+        apps = {};
+        revision++;
+        saveTimer.restart();
+    }
+
     function parse(text: string): void {
         try {
             const data = JSON.parse(text);

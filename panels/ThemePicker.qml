@@ -11,7 +11,8 @@ import qs.panels.picker
 // Live preview: the highlighted theme is shown on the island right away (Themes.preview,
 // everything bound to Theme.* follows: this panel's frame and text, the workspace strip
 // bottom left). Enter applies it (Settings.theme), Esc / click outside / another panel
-// drops the preview and the applied theme is back.
+// drops the preview and the applied theme is back. Settings.pickerThemePreview off: no live
+// preview, the island keeps the applied theme until Enter.
 //
 // Keys: Left/Right, Tab/Shift+Tab (wrap), Home/End, Ctrl+N/P, Enter, Esc (PanelHost),
 // typing filters. Mouse: click a card to highlight, click the highlighted one to apply,
@@ -71,16 +72,19 @@ PanelBase {
         Ui.close();
     }
 
-    onHighlightedChanged: if (active)
+    readonly property bool live: Settings.pickerThemePreview
+    onHighlightedChanged: if (active && live)
         Themes.preview = highlighted
     onActiveChanged: {
         if (probe)
             return;
-        if (active)
+        if (active && live)
             Themes.preview = highlighted;
         else if (!applied)
             Themes.preview = "";
     }
+    onLiveChanged: if (active && !probe)
+        Themes.preview = live ? highlighted : ""
     Component.onDestruction: if (!probe && !applied && Themes.preview === highlighted)
         Themes.preview = ""
 

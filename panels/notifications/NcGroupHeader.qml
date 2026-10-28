@@ -11,6 +11,7 @@ Item {
 
     property var group: null          // Notifs.groups entry (kept while the row leaves)
     property bool unfolded: false
+    property bool foldable: true      // false: no fold chevron (notification center ungrouped)
     property bool selected: false     // keyboard
     readonly property int count: group ? group.entries.length : 0
     readonly property QtObject nc: Theme.nc
@@ -48,7 +49,7 @@ Item {
 
     MouseArea {
         anchors.fill: plate
-        enabled: head.count > 1
+        enabled: head.count > 1 && head.foldable
         cursorShape: Qt.PointingHandCursor
         onClicked: head.toggle()
     }
@@ -89,7 +90,7 @@ Item {
         id: fold
         x: head.width - width - 4
         y: head.nc.groupY - height / 2
-        visible: head.count > 1
+        visible: head.count > 1 && head.foldable
         icon: head.unfolded ? "chevron-up" : "chevron-down"
         hot: head.selected
         onClicked: head.toggle()

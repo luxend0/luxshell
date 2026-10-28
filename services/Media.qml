@@ -14,6 +14,11 @@ import qs.config
 // else the last one that played, else the first with a track.
 // playerctld (a proxy that mirrors another player) is skipped.
 //
+// Settings (Media page): mediaHidden = player keys (playerKey) luxshell ignores entirely
+// (players / active never see them); mediaPreferred = the player shown when nothing was
+// picked, as long as it has a track and no other player is playing while it is paused;
+// mediaChip off = hasTrack stays false, so the hover island keeps the window title.
+//
 // position is not reactive in Quickshell (it is extrapolated on read): while someone
 // shows it (watch(true)), a timer re-emits positionChanged twice a second.
 //
@@ -29,7 +34,23 @@ Singleton {
     property bool started: false
     Component.onCompleted: Qt.callLater(() => root.started = true)
 
-    readonly property var players: fake ? fakePlayers.filter(p => p.present) : !started ? [] : Mpris.players.values.filter(p => p.dbusName !== "org.mpris.MediaPlayer2.playerctld")
+    // every player (settings app lists them), then the ones luxshell shows
+    readonly property var allPlayers: fake ? fakePlayers.filter(p => p.present) : !started ? [] : Mpris.players.values.filter(p => p.dbusName !== "org.mpris.MediaPlayer2.playerctld")
+    readonly property var players: {
+        const hidden = Array.from(Settings.mediaHidden ?? []);
+        return hidden.length === 0 ? allPlayers : allPlayers.filter(p => !hidden.includes(playerKey(p)));
+    }
+
+    // stable id of a player across restarts and instances: desktop entry, else the MPRIS bus
+    // name without its prefix and instance suffix ("firefox.instance_1_42" -> "firefox")
+    function playerKey(p: var): string {
+        if (!p)
+            return "";
+        const entry = String(p.desktopEntry ?? "").toLowerCase();
+        if (entry !== "")
+            return entry;
+        return String(p.dbusName ?? "").replace(/^org\.mpris\.MediaPlayer2\./, "").replace(/\.instance.*$/, "").toLowerCase();
+    }
 
     property var pinned: null
     property var recent: null
@@ -39,6 +60,10 @@ Singleton {
         if (pinned && ps.includes(pinned))
             return pinned;
         const playing = ps.filter(p => p.isPlaying);
+        const want = Settings.mediaPreferred;
+        const preferred = want === "" ? null : ps.find(p => playerKey(p) === want && (p.trackTitle ?? "") !== "") ?? null;
+        if (preferred && (preferred.isPlaying || playing.length === 0))
+            return preferred;
         if (playing.length > 0)
             return recent && playing.includes(recent) ? recent : playing[0];
         if (recent && ps.includes(recent))
@@ -64,8 +89,9 @@ Singleton {
         }
     }
 
-    // the island shows media only for a player with a track
-    readonly property bool hasTrack: !!active && (active.trackTitle ?? "") !== ""
+    // the island shows media only for a player with a track (and while the chip is on)
+    readonly property bool trackShown: !!active && (active.trackTitle ?? "") !== ""
+    readonly property bool hasTrack: Settings.mediaChip && trackShown
     readonly property bool playing: active?.isPlaying ?? false
 
     // ---- display helpers ----------------------------------------------------

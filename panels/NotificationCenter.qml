@@ -25,7 +25,9 @@ import qs.panels.notifications
 // hover) while Notifs replaces its entry objects.
 // Height: header + the rows' RESTING heights (not the animated ones) + pad, so the island
 // morphs once per change while the rows slide with the same curve; capped at
-// Theme.nc.maxHeight, then the list scrolls (edges fade while more is off view).
+// Settings.notifCenterMaxHeight (default = Theme.nc.maxHeight), then the list scrolls (edges
+// fade while more is off view). Settings.notifCenterGroup off: no per-app groups, the cards
+// newest first, a header (no folding) over every run of cards from the same app.
 //
 // Opening marks everything read (Notifs.markAllRead); what was unread keeps a dot until
 // the panel closes. While it is open, peeks stay out of the island (services/Notifs) and
@@ -43,19 +45,22 @@ PanelBase {
     readonly property QtObject nc: Theme.nc
 
     preferredWidth: nc.width
-    preferredHeight: empty ? nc.emptyHeight : Math.min(nc.maxHeight, Math.ceil(nc.headerHeight + targetContent + nc.pad))
+    readonly property int maxH: Math.max(nc.emptyHeight, Settings.notifCenterMaxHeight)
+    readonly property bool grouped: Settings.notifCenterGroup
+
+    preferredHeight: empty ? nc.emptyHeight : Math.min(maxH, Math.ceil(nc.headerHeight + targetContent + nc.pad))
     maxWidth: nc.width
-    maxHeight: nc.maxHeight
+    maxHeight: maxH
     cornerRadius: nc.radius
 
     // ---- rows ---------------------------------------------------------------------------
     property var unfolded: ({})       // group -> true
-    readonly property var groups: probe ? [] : Notifs.groups
+    readonly property var groups: probe ? [] : grouped ? Notifs.groups : runs(Notifs.entries)
     readonly property var rows: {
         const out = [];
         for (const g of groups) {
             out.push("g|" + g.group);
-            const all = g.entries.length < 2 || unfolded[g.group] === true;
+            const all = !grouped || g.entries.length < 2 || unfolded[g.group] === true;
             for (const e of all ? g.entries : g.entries.slice(0, 1))
                 out.push("n|" + e.key);
         }
@@ -63,10 +68,43 @@ PanelBase {
     }
     readonly property bool empty: rows.length === 0
 
+    // ungrouped: consecutive cards of one app share a header; its id names the newest card,
+    // so two runs of the same app stay apart
+    function runs(entries: var): var {
+        const out = [];
+        let cur = null;
+        for (const e of entries) {
+            if (!cur || cur.appGroup !== e.group) {
+                cur = {
+                    "group": e.group + "#" + e.key,
+                    "appGroup": e.group,
+                    "run": true,
+                    "app": e.app,
+                    "icon": e.icon,
+                    "picture": e.picture,
+                    "entries": []
+                };
+                out.push(cur);
+            }
+            cur.entries.push(e);
+        }
+        return out;
+    }
+    // clear a header's cards: the whole app (grouped) or just that run
+    function clearRow(id: string): void {
+        const g = groupOf(id);
+        if (g && g.run === true)
+            g.entries.forEach(e => Notifs.dismiss(e.key));
+        else
+            Notifs.clearGroup(id);
+    }
+
     function groupOf(name: string): var {
         return groups.find(g => g.group === name) ?? null;
     }
     function setUnfolded(group: string, on: bool): void {
+        if (!grouped)
+            return;
         if ((unfolded[group] === true) === on)
             return;
         const u = Object.assign({}, unfolded);
@@ -333,7 +371,7 @@ PanelBase {
             if (shift || sel === "h|clear")
                 Notifs.clear();
             else if (groupRow)
-                Notifs.clearGroup(sel.slice(2));
+                root.clearRow(sel.slice(2));
             else if (card)
                 card.flyAway(1);
             return;
@@ -491,14 +529,14 @@ PanelBase {
         id: list
 
         // from the resting heights, so it does not flicker while rows resize
-        readonly property bool scrollable: !root.empty && root.nc.headerHeight + root.targetContent + root.nc.pad > root.nc.maxHeight + 0.5
+        readonly property bool scrollable: !root.empty && root.nc.headerHeight + root.targetContent + root.nc.pad > root.maxH + 0.5
 
         y: root.nc.headerHeight - topMargin
         width: root.width
         // as tall as the largest panel: every row that fits the island exists (their
         // resting heights size the panel), the island body cuts the rest. Scrolled rows
         // end listInset above the panel edge, inside its round corners.
-        height: root.nc.maxHeight - y - root.nc.listInset
+        height: root.maxH - y - root.nc.listInset
         topMargin: 6
         bottomMargin: root.nc.pad - root.nc.listInset
         clip: true
@@ -605,7 +643,7 @@ PanelBase {
 
             // newest card of a folded group: the others become edges behind it
             readonly property int layers: {
-                if (isHeader || !info)
+                if (isHeader || !info || !root.grouped)
                     return 0;
                 const g = root.groupOf(info.group);
                 if (!g || g.entries.length < 2 || root.unfolded[info.group] === true)
@@ -645,9 +683,10 @@ PanelBase {
                 NcGroupHeader {
                     group: row.info
                     unfolded: root.unfolded[row.ref] === true
+                    foldable: root.grouped
                     selected: row.selected
                     onToggle: root.setUnfolded(row.ref, !unfolded)
-                    onClear: Notifs.clearGroup(row.ref)
+                    onClear: root.clearRow(row.ref)
                 }
             }
             Component {

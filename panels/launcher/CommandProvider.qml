@@ -1,11 +1,12 @@
 import QtQuick
 import Quickshell
+import qs.config
 import qs.services
 
 // "> cmd" runs cmd through $SHELL in the terminal (kitty --hold: stays open at a
 // prompt). Recent commands below, most recent first.
 Provider {
-    prefix: ">"
+    prefix: Settings.launcherPrefixes?.commands ?? ">" // settings app, Launcher page
     inDefault: false
     label: "Run in " + Apps.terminal[0]
     glyph: "terminal"

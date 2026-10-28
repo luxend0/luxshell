@@ -20,6 +20,10 @@ import qs.panels.overview
 // the remaining cards slide together. On open the previously focused window is selected
 // (Enter = back to it), the focused one carries a small dot.
 //
+// Settings (Overview & Pickers page): overviewPreview live | still | icons (WindowCard),
+// overviewGroup off = one grid without workspace headings (same order), overviewCardSize
+// scales the preview box (label line stays).
+//
 // Keys: arrows move spatially, Tab/Shift+Tab and Ctrl+N/P step in reading order (wrap),
 // Home/End, PgUp/PgDn, Enter focuses (hl.dsp.focus by address), Del or Ctrl+W closes
 // the selected window (through services/Exec, so LUXSHELL_DRYRUN only logs), Esc closes
@@ -31,14 +35,21 @@ PanelBase {
     readonly property var g: Theme.overview
     readonly property var p: Theme.picker
 
-    readonly property int cellHeight: g.thumbHeight + g.labelHeight
-    readonly property int maxRowWidth: g.maxCols * g.cardWidth + (g.maxCols - 1) * g.colGap
-    readonly property int maxContentHeight: g.maxLines * (g.headingHeight + cellHeight) + (g.maxLines - 1) * g.rowGap
+    readonly property real cardScale: Math.max(0.5, Math.min(2, Settings.overviewCardSize))
+    readonly property int cardWidth: Math.round(g.cardWidth * cardScale)
+    readonly property int thumbHeight: Math.round(g.thumbHeight * cardScale)
+    readonly property bool grouped: Settings.overviewGroup
+    readonly property int headingHeight: grouped ? g.headingHeight : 0
+    readonly property string previewMode: Settings.overviewPreview
+
+    readonly property int cellHeight: thumbHeight + g.labelHeight
+    readonly property int maxRowWidth: g.maxCols * cardWidth + (g.maxCols - 1) * g.colGap
+    readonly property int maxContentHeight: g.maxLines * (headingHeight + cellHeight) + (g.maxLines - 1) * g.rowGap
 
     readonly property string query: search.text.trim()
     readonly property var wins: probe ? [] : collect(query)
     readonly property var lay: layout(wins)
-    readonly property int viewHeight: lay.count === 0 ? g.headingHeight + cellHeight : Math.min(lay.h, maxContentHeight)
+    readonly property int viewHeight: lay.count === 0 ? headingHeight + cellHeight : Math.min(lay.h, maxContentHeight)
     // the window that has focus right now; none on an empty workspace
     readonly property string focusedAddress: Hypr.hasWindow ? addressOf(Hypr.toplevel) : ""
 
@@ -112,12 +123,13 @@ PanelBase {
     // columns; groups are packed into rows left to right, a group that does not fit
     // starts the next row.
     function layout(list: var): var {
-        const C = g.cardWidth;
+        const C = cardWidth;
         const H = cellHeight;
+        const HH = headingHeight;
         const groups = [];
         for (const w of list) {
             let last = groups[groups.length - 1];
-            if (!last || last.id !== w.wsId) {
+            if (!last || (grouped && last.id !== w.wsId)) {
                 last = {
                     "id": w.wsId,
                     "name": w.wsName,
@@ -134,7 +146,7 @@ PanelBase {
             const cols = Math.min(n, g.maxCols);
             const lines = Math.ceil(n / cols);
             const bw = cols * C + (cols - 1) * g.colGap;
-            const bh = g.headingHeight + lines * H + (lines - 1) * g.lineGap;
+            const bh = HH + lines * H + (lines - 1) * g.lineGap;
             if (!row || (row.blocks.length > 0 && row.w + g.groupGap + bw > maxRowWidth)) {
                 row = {
                     "w": 0,
@@ -160,17 +172,18 @@ PanelBase {
         let w = 0;
         for (const r of rows) {
             for (const b of r.blocks) {
-                heads[b.gr.id] = {
-                    "x": b.x,
-                    "y": y,
-                    "w": b.w,
-                    "name": b.gr.name,
-                    "count": b.gr.items.length
-                };
+                if (grouped) // ungrouped: one block without heading
+                    heads[b.gr.id] = {
+                        "x": b.x,
+                        "y": y,
+                        "w": b.w,
+                        "name": b.gr.name,
+                        "count": b.gr.items.length
+                    };
                 b.gr.items.forEach((it, i) => {
                     slots[it.addr] = Object.assign({}, it, {
                         "x": b.x + (i % b.cols) * (C + g.colGap),
-                        "y": y + g.headingHeight + Math.floor(i / b.cols) * (H + g.lineGap),
+                        "y": y + HH + Math.floor(i / b.cols) * (H + g.lineGap),
                         "order": order.length
                     });
                     order.push(it.addr);
@@ -302,7 +315,7 @@ PanelBase {
         const s = sel;
         if (!s)
             return;
-        const top = s.y - g.headingHeight;
+        const top = s.y - root.headingHeight;
         const bottom = s.y + cellHeight;
         let y = flick.contentY;
         if (top < y)
@@ -614,6 +627,9 @@ PanelBase {
                     readonly property var slot: root.lay.slots[addr] ?? null
 
                     toplevel: modelData
+                    cardWidth: root.cardWidth
+                    thumbHeight: root.thumbHeight
+                    previewMode: root.previewMode
                     title: slot?.title ?? modelData.title
                     icon: slot?.icon ?? ""
                     selected: root.selected === addr && slot !== null
