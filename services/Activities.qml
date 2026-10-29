@@ -83,11 +83,14 @@ Singleton {
     property int fakeMuted: -1
     readonly property real vol: fakeVolume >= 0 ? fakeVolume : Audio.volume
     readonly property bool volMuted: fakeMuted >= 0 ? fakeMuted === 1 : Audio.muted
+    // the bar spans 0 .. the volume limit (Settings.soundMaxVolume: 100 %, a boost up to 150 %),
+    // the text says the real level ("130%")
     readonly property var volume: normalize({
         "key": "volume",
         "icon": volMuted || vol <= 0.001 ? "volume-x" : vol < 0.34 ? "volume" : vol < 0.67 ? "volume-1" : "volume-2",
         "label": "Volume",
-        "value": vol,
+        "value": vol / Audio.limit,
+        "detail": Math.round(vol * 100) + "%",
         "dim": volMuted
     })
 
@@ -261,7 +264,7 @@ Singleton {
         }
         // simulated default-sink change (v < 0: back to the real sink, nothing shown)
         function volume(v: real): void {
-            root.fakeVolume = v < 0 ? -1 : Math.min(1, v);
+            root.fakeVolume = v < 0 ? -1 : Math.min(1.5, v);
             if (v >= 0)
                 root.show(root.volume);
         }

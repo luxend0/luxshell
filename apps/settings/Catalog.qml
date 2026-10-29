@@ -35,6 +35,8 @@ Singleton {
         // ---- group "system" (the OS; Hyprland values via services/HyprSystem) ----
         SysDisplays {},
         SysInput {},
+        SysSound {},
+        SysNetwork {},
         SysIdle {}
     ]
 

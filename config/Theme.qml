@@ -1128,4 +1128,36 @@ Singleton {
         readonly property color plate: root.mix(root.settings.field, root.text, 0.14)
         readonly property color guide: root.mix(root.island, root.accent, 0.6)
     }
+
+    // ---- System > Sound, Network & Bluetooth (apps/settings/sysnet) -------------------------
+    // Lists inside the settings cards: one line per device / profile / network, an icon disc,
+    // name + grey sub line, actions right; a line can unfold its details below.
+    readonly property QtObject sysnet: QtObject {
+        readonly property int line: 64              // one list line (two text lines)
+        readonly property int disc: 38              // icon disc left
+        readonly property int discIcon: 21
+        readonly property int textGap: 14           // disc -> name
+        readonly property real subSize: 13.5
+        readonly property int subGap: 2             // name -> sub line
+        readonly property int buttonGap: 8          // between the buttons right
+        readonly property int detailRow: 40         // one line of unfolded details (key / value)
+        readonly property int detailPadTop: 2
+        readonly property int detailPadBottom: 14
+        readonly property int detailKey: 150        // key column width
+        readonly property real detailSize: 14.5
+        readonly property int dnsField: 330         // custom DNS servers field
+        readonly property int volumeButton: 34      // mute disc left of a volume slider
+        readonly property int sliderGap: 14
+        readonly property int appLine: 76           // per-app volume: name line + slider
+        readonly property int appIcon: 26
+        readonly property int meterBars: 30         // live input level
+        readonly property int meterBarWidth: 6
+        readonly property int meterGap: 4
+        readonly property int meterHeight: 18
+        readonly property int infoRow: 40           // address lines of the connection card
+        readonly property int pwHeight: 52          // Wi-Fi password line
+        readonly property color discOn: root.mix(root.settings.selected, root.text, 0.12)
+        readonly property color meterOff: root.mix(root.island, root.surfaceHigh, 0.9)
+        readonly property color meterHot: root.mix(root.accent, root.danger, 0.7)
+    }
 }

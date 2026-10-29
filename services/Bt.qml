@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
 import qs.config
+import qs.services
 
 // Bluetooth (BlueZ via Quickshell.Bluetooth): default adapter, saved and nearby
 // devices. Reads are passive; the functions below are the only writers and go
@@ -18,7 +19,7 @@ Singleton {
     readonly property bool available: fake || !!adapter
     readonly property bool enabled: fake ? fakeAdapter.enabled : (adapter?.enabled ?? false)
     readonly property bool discovering: fake ? fakeAdapter.discovering : (adapter?.discovering ?? false)
-    readonly property string adapterName: fake ? "luxos" : (adapter?.name ?? "")
+    readonly property string adapterName: fake ? fakeAdapter.name : (adapter?.name ?? "")
     readonly property bool busy: !fake && !!adapter && (adapter.state === BluetoothAdapterState.Enabling || adapter.state === BluetoothAdapterState.Disabling)
 
     readonly property var devices: fake ? [...fakeDevices].filter(d => d.paired || d.found) : (adapter?.devices?.values ?? [])
@@ -158,6 +159,8 @@ Singleton {
         id: fakeAdapter
         property bool enabled: true
         property bool discovering: false
+        property bool discoverable: false
+        property string name: "luxos"
     }
 
     readonly property list<QtObject> fakeDevices: [
@@ -214,6 +217,81 @@ Singleton {
                 d.paired = d.bonded = true;
             d.connected = connecting;
             d.state = connecting ? BluetoothDeviceState.Connected : BluetoothDeviceState.Disconnected;
+        }
+    }
+
+    // ---- System > Network & Bluetooth (adapter visibility and name, trust, auto-connect) ----
+    readonly property bool discoverable: fake ? fakeAdapter.discoverable : (adapter?.discoverable ?? false)
+
+    function setDiscoverable(on: bool): void {
+        if (fake)
+            fakeAdapter.discoverable = on;
+        else if (adapter && Exec.allow(`bluetooth adapter discoverable = ${on}`))
+            adapter.discoverable = on;
+    }
+    // the adapter's alias (what other devices see); BlueZ keeps it across reboots
+    function setAdapterName(name: string): void {
+        const n = name.trim();
+        if (n === "" || n === adapterName)
+            return;
+        if (fake) {
+            Exec.allow(`bluetooth adapter name = ${n}`);
+            fakeAdapter.name = n;
+            return;
+        }
+        Exec.runDone(["bluetoothctl", "system-alias", n], "bluetooth adapter name", null);
+    }
+    function setTrusted(d, on: bool): void {
+        if (!d)
+            return;
+        if (fake)
+            d.trusted = on;
+        else if (Exec.allow(`bluetooth trust ${d.name} (${d.address}) = ${on}`))
+            d.trusted = on;
+    }
+
+    // Auto-connect (Settings.btAutoConnect, addresses): luxshell connects these saved devices
+    // when Bluetooth comes on and once at start. Only connects, never disconnects.
+    function autoConnects(d): bool {
+        return !!d && (Settings.btAutoConnect ?? []).includes(d.address);
+    }
+    function setAutoConnect(d, on: bool): void {
+        if (!d)
+            return;
+        const list = (Settings.btAutoConnect ?? []).filter(a => a !== d.address);
+        if (on)
+            list.push(d.address);
+        Settings.set("btAutoConnect", list);
+    }
+    function autoConnectNow(why: string): void {
+        if (!enabled)
+            return;
+        for (const d of saved)
+            if (!d.connected && !busyOf(d) && autoConnects(d)) {
+                console.info(`luxshell: bluetooth auto-connect ${d.name} (${why})`);
+                connect(d);
+            }
+    }
+    property bool wasEnabled: false
+    onEnabledChanged: {
+        if (enabled && !wasEnabled && autoStart.done)
+            autoLater.restart(); // BlueZ needs a moment after powering on
+        wasEnabled = enabled;
+    }
+    Timer {
+        id: autoLater
+        interval: 2500
+        onTriggered: root.autoConnectNow("bluetooth on")
+    }
+    Timer {
+        id: autoStart
+        property bool done: false
+        running: true
+        interval: 6000 // the adapter and its devices are known by then
+        onTriggered: {
+            done = true;
+            root.wasEnabled = root.enabled;
+            root.autoConnectNow("start");
         }
     }
 }

@@ -58,6 +58,11 @@ import Quickshell
 //   LUXSHELL_IDLE_SCALE   factor for every idle timeout of services/Idle (Settings.idle*After); 0.02 turns
 //                         150 / 300 / 330 / 1800 s into 3 / 6 / 6.6 / 36 s (sandbox tests). Dim, lock, screen
 //                         off and suspend still go through Exec: with LUXSHELL_DRYRUN=1 they only log
+//   LUXSHELL_FAKE_NM=1    System > Network & Bluetooth shows demo NetworkManager profiles (wired, Wi-Fi,
+//                         WireGuard, OpenVPN) and two connected devices instead of reading nmcli; changes are
+//                         logged by Exec and then applied to the demo data only (services/NetConfig)
+//   LUXSHELL_FAKE_LEVEL=1 System > Sound: the input level meter shows a talking-like demo level instead of the
+//                         microphone's peaks (screenshots; apps/settings/sysnet/LevelMeter.qml)
 //   LUXSHELL_IDLE_LOGIND_BUS=session  services/Idle listens for logind (PrepareForSleep, Session.Lock) on the
 //                         session bus instead of the system bus: sandbox with LUXSB_DBUS=1 and a fake
 //                         org.freedesktop.login1 there (the real signals cannot be sent without sleeping / locking)
