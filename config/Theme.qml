@@ -996,4 +996,41 @@ Singleton {
         readonly property color armedInk: "#ffffff"
         readonly property color armedTile: Qt.rgba(1, 1, 1, 0.18)
     }
+
+    // ---- bar info + tool widgets (island/widgets: Gpu, Temp, NetSpeed, Updates, Tool, Privacy;
+    // panels/PrivacyPanel). Glyph + text sizes come from `widgets` above; [collapsed, hover].
+    readonly property QtObject barInfo: QtObject {
+        readonly property real arrowScale: 0.82     // netspeed arrows next to the text
+        readonly property var dotSize: [8, 10]      // privacy dot
+        readonly property var privacyGap: [6, 8]    // dot -> first glyph
+        readonly property var privacyIconGap: [4, 6]
+        readonly property real privacyIconScale: 0.9
+        // privacy panel: the power menu's rows, narrower
+        readonly property int panelWidth: 440
+        readonly property int maxRows: 5
+        readonly property int headerHeight: 62
+        readonly property real centerY: 32
+        readonly property real dotX: 28
+        readonly property real headerDot: 9
+        readonly property real titleX: 48
+        readonly property real padRight: 26
+        readonly property real headerSize: root.tx(17)
+        readonly property real inset: 14
+        readonly property int listTop: 72
+        readonly property int padBottom: 12
+        readonly property int rowHeight: 60
+        readonly property real tileX: 12
+        readonly property real tileSize: 40
+        readonly property real tileRadius: root.rad(11)
+        readonly property real appIconSize: 24
+        readonly property real glyphSize: 18
+        readonly property real glyphRight: 14
+        readonly property real textX: 66
+        readonly property real titleSize: root.tx(17)
+        readonly property real subtitleSize: root.tx(14)
+        readonly property real titleBaseline: 27
+        readonly property real subtitleBaseline: 46
+        readonly property color separator: root.mix(root.island, root.text, 0.1)
+        readonly property color tile: Qt.rgba(root.text.r, root.text.g, root.text.b, 0.065)
+    }
 }

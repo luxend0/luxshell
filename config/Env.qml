@@ -37,6 +37,10 @@ import Quickshell
 //                         since boot, "kernel" = running kernel replaced on disk (screenshots)
 //   LUXSHELL_FAKE_WEATHER  wttr.in answer "%x|%t|%C" (e.g. "m|+12°C|Partly cloudy") for the island's
 //                         weather widget instead of asking the network (services/Weather)
+//   LUXSHELL_FAKE_UPDATES  "12" or "12+3" (repo + AUR) pending updates for the island's updates widget
+//                         instead of running checkupdates / paru (services/Updates)
+//   LUXSHELL_FAKE_PRIVACY  "mic:Discord:discord,screen:OBS Studio:com.obsproject.Studio" (kind:app:icon)
+//                         replaces the live privacy list (services/Privacy; also ipc call privacy fake)
 Singleton {
     id: root
 

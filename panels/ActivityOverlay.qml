@@ -89,9 +89,22 @@ PanelBase {
             id: icon
             x: root.o.padLeft
             y: root.o.centerY - height / 2
+            visible: !root.shown?.swatch
             name: root.shown?.icon ?? ""
             size: root.o.iconSize
             color: Theme.text
+        }
+        // colour picker: the picked colour where the icon sits (activity "swatch")
+        Rectangle {
+            visible: !!root.shown?.swatch
+            x: icon.x + (icon.width - width) / 2
+            y: root.o.centerY - height / 2
+            width: root.o.iconSize
+            height: width
+            radius: width / 2
+            color: root.shown?.swatch || "transparent"
+            border.width: 1
+            border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
         }
 
         // value: slider (ref/10)

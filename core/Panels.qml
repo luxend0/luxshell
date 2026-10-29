@@ -85,6 +85,12 @@ Singleton {
                 "component": powerMenu,
                 "kind": "panel"
             },
+            // apps using the microphone / camera / screen (services/Privacy), opened from the
+            // island's privacy dot
+            "privacy": {
+                "component": privacyPanel,
+                "kind": "panel"
+            },
             // own window (FloatingWindow), Ui.open/toggle hand it to window.show()/toggle()
             "settings": {
                 "window": SettingsApp,
@@ -196,5 +202,9 @@ Singleton {
     Component {
         id: powerMenu
         PowerMenu {}
+    }
+    Component {
+        id: privacyPanel
+        PrivacyPanel {}
     }
 }
