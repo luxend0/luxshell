@@ -199,7 +199,13 @@ Item {
             "colorpicker": cColorPicker,
             "launcher": cLauncher,
             "overview": cOverview,
-            "privacy": cPrivacy
+            "privacy": cPrivacy,
+            "bluetooth": cBluetooth,
+            "display": cDisplay,
+            "mic": cMic,
+            "nightlight": cNightLight,
+            "powerprofile": cPowerProfile,
+            "caffeine": cCaffeine
         })
 
     Component {
@@ -325,5 +331,30 @@ Item {
     Component {
         id: cPrivacy
         PrivacyWidget {}
+    }
+    // bar menus + switches (island/widgets/BarToggle)
+    Component {
+        id: cBluetooth
+        BluetoothWidget {}
+    }
+    Component {
+        id: cDisplay
+        DisplayWidget {}
+    }
+    Component {
+        id: cMic
+        MicWidget {}
+    }
+    Component {
+        id: cNightLight
+        NightLightWidget {}
+    }
+    Component {
+        id: cPowerProfile
+        PowerProfileWidget {}
+    }
+    Component {
+        id: cCaffeine
+        CaffeineWidget {}
     }
 }

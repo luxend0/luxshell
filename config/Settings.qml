@@ -123,6 +123,20 @@ Singleton {
     property int islandUpdatesInterval: 60 // min between update checks (15..240)
     property string islandPickerFormat: "hex" // colour picker: hex | rgb | hsl (hyprpicker -f)
     property string islandPrivacyStyle: "icons" // privacy widget: icons (dot + what is in use) | dot
+    // bar menus + switches (palette only, island/widgets/BarToggle and friends, panels/SheetMenu)
+    property bool islandNetworkMenu: true // network widget: click opens the network menu (off: the click falls through to the island)
+    property bool islandVolumeMenu: true // volume widget: click opens the sound menu (off: the click falls through to the island)
+    property bool islandBluetoothBattery: true // bluetooth widget: battery of the connected device next to the glyph
+    property bool islandBluetoothName: false // bluetooth widget: name of the connected device
+    property bool islandDisplayPercent: false // display widget: brightness percentage
+    property int islandDisplayStep: 5 // % per scroll notch on the display widget (1..20)
+    property bool islandMicRecording: true // microphone widget turns red while an app records
+    property bool islandMicPercent: false // microphone widget: input volume percentage
+    property bool islandNightLightTemp: false // night light widget: temperature next to the glyph
+    property int islandNightLightStep: 100 // K per scroll notch on the night light widget (50..500)
+    property bool islandPowerProfileLabel: false // power mode widget: profile name next to the glyph
+    property bool islandCaffeineTime: true // caffeine widget: time left next to the glyph
+    property int islandCaffeineClick: 0 // minutes a click on the caffeine widget keeps the session awake, 0 = until turned off
 
     // ---- look* : Appearance (colours, font, radius, transparency, shadow, border, scale) ----
     property real lookRadiusScale: 1 // corner radius factor: island + panels (island/IslandShape) and cards (Theme.rad)

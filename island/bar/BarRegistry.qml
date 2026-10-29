@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Services.UPower
 import qs.config
 import qs.services
+import qs.services as Services // PowerProfile: Quickshell.Services.UPower has an enum of that name
 import "layout.js" as L
 
 // Widgets of the island and the layout they sit in (Settings.islandLayout).
@@ -199,8 +200,13 @@ Singleton {
             "cls": "status",
             "reveal": "extras",
             "dim": true,
-            "desc": "Ethernet = all bars, Wi-Fi by strength, offline = none.",
+            "desc": "Ethernet = all bars, Wi-Fi by strength, offline = none. Click opens the network menu.",
             "options": [
+                {
+                    "key": "islandNetworkMenu",
+                    "label": "Click opens menu",
+                    "kind": "switch"
+                },
                 {
                     "key": "islandNetworkStyle",
                     "label": "Style",
@@ -226,8 +232,13 @@ Singleton {
             "cls": "status",
             "reveal": "extras",
             "dim": true,
-            "desc": "Output volume. Scroll on it to change the volume.",
+            "desc": "Output volume. Scroll on it to change the volume, click opens the sound menu.",
             "options": [
+                {
+                    "key": "islandVolumeMenu",
+                    "label": "Click opens menu",
+                    "kind": "switch"
+                },
                 {
                     "key": "islandVolumePercent",
                     "label": "Percentage",
@@ -683,6 +694,160 @@ Singleton {
                 }
             ]
         },
+        // ---- bar menus + switches (island/widgets/BarToggle; menus = panels/SheetMenu) ----
+        {
+            "id": "bluetooth",
+            "name": "Bluetooth",
+            "icon": "bluetooth",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "Off, on or connected. Click opens the Bluetooth menu.",
+            "options": [
+                {
+                    "key": "islandBluetoothBattery",
+                    "label": "Device battery",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandBluetoothName",
+                    "label": "Device name",
+                    "kind": "switch"
+                }
+            ]
+        },
+        {
+            "id": "display",
+            "name": "Display",
+            "icon": "sun",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "Brightness of this screen (DDC/CI or backlight). Scroll on it to change it, click opens the display menu with the night light.",
+            "options": [
+                {
+                    "key": "islandDisplayPercent",
+                    "label": "Percentage",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandDisplayStep",
+                    "label": "Scroll step",
+                    "kind": "slider",
+                    "min": 1,
+                    "max": 20,
+                    "step": 1,
+                    "unit": " %"
+                }
+            ]
+        },
+        {
+            "id": "mic",
+            "name": "Microphone",
+            "icon": "mic",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "Click mutes or unmutes the microphone. Right click opens the sound menu at the input.",
+            "options": [
+                {
+                    "key": "islandMicRecording",
+                    "label": "Red while an app records",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandMicPercent",
+                    "label": "Input level",
+                    "kind": "switch"
+                }
+            ]
+        },
+        {
+            "id": "nightlight",
+            "name": "Night Light",
+            "icon": "moon",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "Warm screen (wlsunset). Click turns it on or off, scroll sets the temperature, right click opens the display menu.",
+            "options": [
+                {
+                    "key": "islandNightLightTemp",
+                    "label": "Temperature",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandNightLightStep",
+                    "label": "Scroll step",
+                    "kind": "slider",
+                    "min": 50,
+                    "max": 500,
+                    "step": 50,
+                    "unit": " K"
+                }
+            ]
+        },
+        {
+            "id": "powerprofile",
+            "name": "Power Mode",
+            "icon": "gauge",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "power-profiles-daemon. Click switches to the next profile, right click picks one.",
+            "options": [
+                {
+                    "key": "islandPowerProfileLabel",
+                    "label": "Name",
+                    "kind": "switch"
+                }
+            ]
+        },
+        {
+            "id": "caffeine",
+            "name": "Caffeine",
+            "icon": "coffee",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "Keeps the session awake. Click turns it on or off, right click picks 30 min, 1 h, 2 h or until off.",
+            "options": [
+                {
+                    "key": "islandCaffeineTime",
+                    "label": "Time left",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandCaffeineClick",
+                    "label": "Click keeps awake",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": 0,
+                            "label": "Until off"
+                        },
+                        {
+                            "value": 30,
+                            "label": "30 min"
+                        },
+                        {
+                            "value": 60,
+                            "label": "1 h"
+                        },
+                        {
+                            "value": 120,
+                            "label": "2 h"
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "id": "spacer",
             "name": "Spacer",
@@ -765,6 +930,10 @@ Singleton {
     }
     // can it ever show here (keeps a hover row open)
     function available(id: string): bool {
+        if (id === "nightlight")
+            return NightLight.available;
+        if (id === "powerprofile")
+            return Services.PowerProfile.available;
         return id === "battery" ? hasBattery() : true;
     }
     // shows right now; ids = the slot it sits in (the window title yields to a media chip
@@ -783,6 +952,10 @@ Singleton {
             return updatesShown();
         case "privacy":
             return Privacy.active;
+        case "nightlight":
+            return NightLight.available;
+        case "powerprofile":
+            return Services.PowerProfile.available;
         }
         return true;
     }
@@ -981,6 +1154,18 @@ Singleton {
                 const n = o.islandPrivacyStyle === "dot" ? 0 : Privacy.glyphs.length;
                 return b.dotSize[si] + (n > 0 ? b.privacyGap[si] + n * Math.round(w.iconSize[si] * b.privacyIconScale) + (n - 1) * b.privacyIconGap[si] : 0);
             }
+        case "bluetooth":
+            return o.islandBluetoothName || o.islandBluetoothBattery ? glyphText(si, (o.islandBluetoothName ? "Bluetooth device " : "") + (o.islandBluetoothBattery ? "100%" : "")) : w.iconSize[si];
+        case "display":
+            return o.islandDisplayPercent ? glyphText(si, "100%") : w.iconSize[si];
+        case "mic":
+            return o.islandMicPercent ? glyphText(si, "100%") : w.iconSize[si];
+        case "nightlight":
+            return o.islandNightLightTemp ? glyphText(si, "6000 K") : w.iconSize[si];
+        case "powerprofile":
+            return o.islandPowerProfileLabel ? glyphText(si, "Performance") : w.iconSize[si];
+        case "caffeine":
+            return o.islandCaffeineTime ? glyphText(si, "1h 59m") : w.iconSize[si];
         }
         return 0;
     }

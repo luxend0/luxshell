@@ -13,6 +13,7 @@ Item {
     property string caption
     property string status: ""        // right of the caption, dim
     property bool statusDot: true     // leading dot ("• Scanning")
+    property color dotOn: Theme.text  // the dot's bright phase (sound menu input: red while an app records)
     property string action: ""        // clickable text in the same place, when there is no status
     property string hint: ""
     property bool showHint: false
@@ -51,7 +52,7 @@ Item {
             width: section.sh.dot
             height: width
             radius: width / 2
-            color: bright ? Theme.text : Theme.textDim
+            color: bright ? section.dotOn : Theme.textDim
             Behavior on color {
                 ColorAnim {
                     ms: 300

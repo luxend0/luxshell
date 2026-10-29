@@ -11,13 +11,33 @@ import qs.config
 // wlsunset is started detached: it keeps running across shell restarts, like the setting
 // it stands for. State is read with pgrep when the control center opens (refresh()), never
 // polled.
+// Temperature (bar widget scroll, display menu slider): setTemp() / stepTemp() write
+// Settings.ccNightTemp within minTemp..maxTemp (the settings slider's range); a running
+// night light follows (debounced restart below).
+// LUXSHELL_FAKE_SWITCHES=1: available, and with LUXSHELL_DRYRUN the switch follows clicks
+// (nothing is started or read).
 Singleton {
     id: root
 
     property bool available: false
     property bool active: false
 
+    readonly property bool fake: Env.get("LUXSHELL_FAKE_SWITCHES") === "1"
+    readonly property int minTemp: 2500
+    readonly property int maxTemp: 6000
+
+    function setTemp(k: real): void {
+        const v = Math.max(minTemp, Math.min(maxTemp, Math.round(k / 50) * 50));
+        if (v !== Settings.ccNightTemp)
+            Settings.set("ccNightTemp", v);
+    }
+    function stepTemp(delta: real): void {
+        setTemp(Settings.ccNightTemp + delta);
+    }
+
     function refresh(): void {
+        if (fake)
+            return;
         if (available && !check.running)
             check.running = true;
     }
@@ -35,6 +55,8 @@ Singleton {
         } else {
             Exec.run(["pkill", "-x", "wlsunset"], "night light off");
         }
+        if (fake)
+            active = on;
         if (!Exec.dry)
             recheck.restart();
     }
@@ -63,7 +85,7 @@ Singleton {
         running: true
         command: ["sh", "-c", "command -v wlsunset"]
         onExited: code => {
-            root.available = code === 0;
+            root.available = root.fake || code === 0;
             root.refresh();
         }
     }

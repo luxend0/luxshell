@@ -54,8 +54,10 @@ Singleton {
                 out.push(g.source);
         return out;
     }
+    // the link groups too: unbound, their state stays "unlinked" and no recording ever counted
+    // (bar-menus, 2026-10-29: pw-record showed up only with this)
     PwObjectTracker {
-        objects: root.captures.concat(root.sources)
+        objects: root.captures.concat(root.sources).concat(root.groups)
     }
 
     function prop(n: var, k: string): string {

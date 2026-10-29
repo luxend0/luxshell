@@ -19,6 +19,8 @@ Singleton {
     readonly property var streams: fake ? [...fakeStreams] : nodes.filter(n => n.audio && n.isSink && n.isStream)
     // what the sound sheet has to track (fake streams are no Pipewire objects)
     readonly property var tracked: fake ? sinks : nodes.filter(n => n.audio && n.isSink)
+    // input side (sound sheet with its input part, panels/SheetMenu): microphones (Audio/Source)
+    readonly property var sources: nodes.filter(n => n.audio && !n.isSink && !n.isStream).sort((a, b) => sinkName(a).localeCompare(sinkName(b)))
 
     function sinkName(n: var): string {
         return n ? (n.description || n.nickname || n.name) : "";
@@ -55,6 +57,16 @@ Singleton {
         if (s.includes("hdmi") || s.includes("displayport"))
             return "monitor";
         return "speaker";
+    }
+
+    function sourceIcon(n: var): string {
+        const s = `${n?.name ?? ""} ${n?.description ?? ""}`.toLowerCase();
+        return s.includes("headset") || s.includes("headphone") || s.includes("bluez") ? "headphones" : "mic";
+    }
+
+    function setDefaultSource(n: var): void {
+        if (n && Exec.allow(`default source = ${sinkName(n)}`))
+            Pipewire.preferredDefaultAudioSource = n;
     }
 
     function setDefault(n: var): void {

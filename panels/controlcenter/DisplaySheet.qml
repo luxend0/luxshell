@@ -4,8 +4,12 @@ import qs.services
 
 // Display sheet: one brightness slider per DDC/CI display (or the backlight).
 // The header button re-reads the displays (DDC is slow, reads are rate limited).
+// withNightLight (bar menu "sheet-display", panels/SheetMenu): a "Night Light" part below
+// with the switch (services/NightLight, wlsunset) and the temperature slider.
 SheetPage {
     id: page
+
+    property bool withNightLight: false
 
     title: "Display"
     actionIcon: "refresh"
@@ -32,6 +36,31 @@ SheetPage {
                 trackIconSize: 22
                 onMoved: v => Brightness.set(index, v)
             }
+        }
+    }
+
+    SheetSection {
+        caption: "Night Light"
+        visible: page.withNightLight
+        showHint: !NightLight.available
+        hint: "Needs wlsunset"
+
+        SwitchRow {
+            icon: "moon" // like the bar's night light widget
+            name: "Night Light"
+            sub: NightLight.active ? `Warm screen · ${Settings.ccNightTemp} K` : "Off"
+            on: NightLight.active
+            onToggled: NightLight.toggle()
+        }
+        SliderRow {
+            readonly property real span: NightLight.maxTemp - NightLight.minTemp
+            label: "Temperature"
+            valueText: `${Settings.ccNightTemp} K`
+            // right = cooler (more kelvin), like the settings slider
+            value: (Settings.ccNightTemp - NightLight.minTemp) / span
+            trackIcon: "thermometer"
+            onMoved: v => NightLight.setTemp(NightLight.minTemp + v * span)
+            onSecondary: NightLight.toggle()
         }
     }
 }

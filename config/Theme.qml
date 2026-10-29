@@ -1057,4 +1057,26 @@ Singleton {
         readonly property color separator: root.mix(root.island, root.text, 0.1)
         readonly property color tile: Qt.rgba(root.text.r, root.text.g, root.text.b, 0.065)
     }
+
+    // ---- bar menus (panels/SheetMenu, island/widgets/BarToggle) -------------------------------
+    // A control-center sheet as its own island panel (registry "sheet-*"): the island grows
+    // straight into the sheet, no control center around it, no back disc. The sheet content
+    // keeps the measures of Theme.cc.sheet; only the panel around it is set here. The small
+    // menus (registry "menu-*": power mode, caffeine) are the same sheet, narrower.
+    readonly property QtObject menus: QtObject {
+        readonly property int width: 560           // sheet menus (Bluetooth, sound, network, display)
+        readonly property int smallWidth: 400      // power mode, caffeine
+        readonly property int maxHeight: 686       // = cc.maxHeight; taller content scrolls
+        readonly property int minHeight: 160
+        readonly property int topPad: 2            // island top edge -> sheet header block
+        readonly property int radius: Math.round(root.rad(38))       // = cc.radius
+        readonly property int smallRadius: Math.round(root.rad(32))
+        readonly property int closeDelay: 120      // ms a picked row of a small menu shows its check before the menu closes
+        // bar widget highlight under the pointer (same as the media chip / notification status)
+        readonly property real hitPad: 8
+        readonly property real hitGrow: 14         // highlight height = glyph + this
+        readonly property color hit: root.media.chipHover
+        readonly property color off: root.textDim  // glyph of a switch that is off (night light, caffeine)
+        readonly property color recording: root.danger // microphone while an app records
+    }
 }

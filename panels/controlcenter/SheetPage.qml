@@ -9,6 +9,10 @@ import qs.widgets
 //
 // The panel root keeps the keyboard focus (panels/ControlCenter.qml); an item
 // that takes real focus (password field) emits releaseFocus when done.
+//
+// backButton: false for a sheet shown as its own island panel (panels/SheetMenu, bar
+// menus): no back disc, the title moves to the captions' line. scrollTo(item) brings a
+// section to the top of the column (sound menu opened on its input part).
 FocusScope {
     id: page
 
@@ -18,6 +22,7 @@ FocusScope {
     property bool hasSwitch: false
     property bool switchOn: false
     property string actionIcon: ""      // icon button at the right instead of a switch
+    property bool backButton: true      // false: bar menu (panels/SheetMenu), nothing to go back to
     readonly property Item defaultItem: backDisc
 
     signal back
@@ -50,16 +55,26 @@ FocusScope {
         }
     }
 
+    // section (or any item of the column) at the top of the visible part, as far as it scrolls
+    function scrollTo(item: Item): void {
+        if (!item)
+            return;
+        // 2 px into the item: the bottom edge of the row above stays out of the clip line
+        const y = Math.round(item.mapToItem(body, 0, 0).y) + 2;
+        flick.contentY = Math.max(0, Math.min(y, flick.contentHeight - flick.height));
+    }
+
     // ---- header ---------------------------------------------------------------
     IconDisc {
         id: backDisc
+        visible: page.backButton
         x: page.sh.backX
         y: Math.round(page.sh.headerY - height / 2)
         onClicked: page.back()
     }
 
     SheetText {
-        x: page.sh.titleX
+        x: page.backButton ? page.sh.titleX : page.sh.captionX
         width: (sw.visible ? sw.x : action.visible ? action.x : page.width) - x - 16
         capY: page.sh.headerY
         px: page.sh.titleSize

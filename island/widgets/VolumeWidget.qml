@@ -2,9 +2,10 @@ import QtQuick
 import qs.config
 import qs.services
 import qs.widgets
+import qs.core
 
 // Output volume glyph (20 px collapsed, 24 px hover), optional percentage after it.
-// Scrolling on it always changes the volume (BarContent asks wantsVolumeScroll).
+// Scrolling on it always changes the volume (BarContent asks wantsVolumeScroll). Click: sound menu.
 Item {
     id: root
 
@@ -53,5 +54,32 @@ Item {
         text: root.pctText
         font.pixelSize: root.wm.textSize[1]
         font.weight: Font.Medium
+    }
+
+    // click opens the sound menu (panel "sheet-sound", Settings.islandVolumeMenu; off: the click falls
+    // through to the island); same highlight as the bar menus' widgets (island/widgets/BarToggle)
+    Rectangle {
+        id: menuHit
+        z: -1 // behind the glyph
+        x: -Theme.menus.hitPad
+        width: root.width + 2 * Theme.menus.hitPad
+        height: root.wm.iconSize[0] + (root.wm.iconSize[1] - root.wm.iconSize[0]) * root.t + Theme.menus.hitGrow
+        anchors.verticalCenter: parent.verticalCenter
+        radius: height / 2
+        color: Theme.menus.hit
+        opacity: menuArea.containsMouse && menuArea.enabled ? 1 : 0
+        Behavior on opacity {
+            Anim {
+                ms: Theme.fadeIn
+            }
+        }
+    }
+    MouseArea {
+        id: menuArea
+        anchors.fill: menuHit
+        enabled: root.interactive && Settings.islandVolumeMenu
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: Ui.open("sheet-sound", root.screen ? root.screen.name : undefined)
     }
 }

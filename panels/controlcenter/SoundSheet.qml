@@ -6,8 +6,16 @@ import qs.services
 // Sound sheet: switch = mute of the default output, output volume, output
 // device (Use), volume per app (Pipewire playback streams). Space / Enter on a
 // slider mutes that output or app.
+// withInput (bar menu "sheet-sound", panels/SheetMenu): an input part after the output
+// devices: default microphone level (services/Mic; "• <app>" while an app records) and the
+// microphones (Use). inputSection / inputSlider: where the menu scrolls and selects when the
+// microphone widget opens it ("sheet-sound-input").
 SheetPage {
     id: page
+
+    property bool withInput: false
+    readonly property Item inputSection: inputPart
+    readonly property Item inputSlider: inputLevel
 
     title: "Sound"
     hasSwitch: Audio.ready
@@ -21,6 +29,9 @@ SheetPage {
     // binds sinks + playback streams while the sheet is open (fills their properties)
     PwObjectTracker {
         objects: Mixer.tracked
+    }
+    PwObjectTracker {
+        objects: page.withInput ? Mixer.sources : []
     }
 
     SheetSection {
@@ -55,6 +66,47 @@ SheetPage {
                 trailingIcon: isDefault ? "check" : ""
                 onActivated: if (!isDefault)
                     Mixer.setDefault(modelData)
+            }
+        }
+    }
+
+    SheetSection {
+        id: inputPart
+        caption: "Input"
+        visible: page.withInput
+        status: Mic.recording ? Mic.recorders.join(", ") : ""
+        dotOn: Theme.danger
+        showHint: !Mic.ready
+        hint: "No microphone"
+
+        SliderRow {
+            id: inputLevel
+            label: Mixer.sinkName(Mic.source)
+            valueText: page.percent(Mic.source?.audio)
+            value: Mic.volume
+            trackIcon: Mic.icon
+            sliderEnabled: Mic.ready
+            onMoved: v => Mic.setVolume(v)
+            onSecondary: Mic.toggleMute()
+        }
+    }
+
+    SheetSection {
+        caption: "Microphones"
+        visible: page.withInput && Mixer.sources.length > 0
+        Repeater {
+            model: Mixer.sources
+            SheetRow {
+                required property var modelData
+                readonly property bool isDefault: modelData === Mic.source
+                icon: Mixer.sourceIcon(modelData)
+                name: Mixer.sinkName(modelData)
+                sub: isDefault ? "In use" : "Available"
+                on: isDefault
+                button: isDefault ? "" : "Use"
+                trailingIcon: isDefault ? "check" : ""
+                onActivated: if (!isDefault)
+                    Mixer.setDefaultSource(modelData)
             }
         }
     }

@@ -49,6 +49,9 @@ import Quickshell
 //                         instead of running checkupdates / paru (services/Updates)
 //   LUXSHELL_FAKE_PRIVACY  "mic:Discord:discord,screen:OBS Studio:com.obsproject.Studio" (kind:app:icon)
 //                         replaces the live privacy list (services/Privacy; also ipc call privacy fake)
+//   LUXSHELL_FAKE_SWITCHES=1  bar switches with demo state (screenshots, with LUXSHELL_DRYRUN): night
+//                         light available, all three power profiles, and clicks change only that
+//                         state, caffeine included (services/NightLight, PowerProfile, Caffeine)
 Singleton {
     id: root
 

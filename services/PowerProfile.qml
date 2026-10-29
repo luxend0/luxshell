@@ -11,8 +11,12 @@ import qs.config
 //   profiles  the ones the daemon offers, in the order power-saver, balanced, performance
 //   profile   the active one ("" = unknown)
 //   cycle()   next profile (wraps)
+// LUXSHELL_FAKE_SWITCHES=1: all three profiles, "balanced" active; with LUXSHELL_DRYRUN set()
+// changes only this state.
 Singleton {
     id: root
+
+    readonly property bool fake: Env.get("LUXSHELL_FAKE_SWITCHES") === "1"
 
     readonly property var order: ["power-saver", "balanced", "performance"]
     property var profiles: []
@@ -35,6 +39,8 @@ Singleton {
         if (!profiles.includes(p) || p === profile)
             return;
         Exec.run(["powerprofilesctl", "set", p], `power profile ${p}`);
+        if (fake)
+            profile = p;
         if (!Exec.dry)
             recheck.restart();
     }
@@ -59,6 +65,12 @@ Singleton {
         command: ["sh", "-c", "command -v powerprofilesctl >/dev/null && powerprofilesctl list 2>/dev/null"]
         stdout: StdioCollector {
             onStreamFinished: {
+                if (root.fake) {
+                    root.profiles = root.order;
+                    if (root.profile === "")
+                        root.profile = "balanced";
+                    return;
+                }
                 const found = [];
                 let cur = "";
                 for (const line of text.split("\n")) {

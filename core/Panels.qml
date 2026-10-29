@@ -95,6 +95,37 @@ Singleton {
             "settings": {
                 "window": SettingsApp,
                 "kind": "window"
+            },
+            // bar menus (panels/SheetMenu): one control-center sheet as its own island panel,
+            // opened by the bar widgets (click; microphone: right click = sound on its input part)
+            "sheet-bluetooth": {
+                "component": sheetBluetooth,
+                "kind": "panel"
+            },
+            "sheet-sound": {
+                "component": sheetSound,
+                "kind": "panel"
+            },
+            "sheet-sound-input": {
+                "component": sheetSoundInput,
+                "kind": "panel"
+            },
+            "sheet-network": {
+                "component": sheetNetwork,
+                "kind": "panel"
+            },
+            "sheet-display": {
+                "component": sheetDisplay,
+                "kind": "panel"
+            },
+            // small menus of the bar switches (right click on power mode / caffeine)
+            "menu-powerprofile": {
+                "component": menuPowerProfile,
+                "kind": "panel"
+            },
+            "menu-caffeine": {
+                "component": menuCaffeine,
+                "kind": "panel"
             }
         })
 
@@ -206,5 +237,48 @@ Singleton {
     Component {
         id: privacyPanel
         PrivacyPanel {}
+    }
+    Component {
+        id: sheetBluetooth
+        SheetMenu {
+            sheet: "bluetooth"
+        }
+    }
+    Component {
+        id: sheetSound
+        SheetMenu {
+            sheet: "sound"
+        }
+    }
+    Component {
+        id: sheetSoundInput // sound menu scrolled to the microphone
+        SheetMenu {
+            sheet: "sound"
+            section: "input"
+        }
+    }
+    Component {
+        id: sheetNetwork
+        SheetMenu {
+            sheet: "network"
+        }
+    }
+    Component {
+        id: sheetDisplay
+        SheetMenu {
+            sheet: "display"
+        }
+    }
+    Component {
+        id: menuPowerProfile
+        SheetMenu {
+            sheet: "powerprofile"
+        }
+    }
+    Component {
+        id: menuCaffeine
+        SheetMenu {
+            sheet: "caffeine"
+        }
     }
 }
