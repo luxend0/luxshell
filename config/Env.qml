@@ -52,6 +52,9 @@ import Quickshell
 //   LUXSHELL_FAKE_SWITCHES=1  bar switches with demo state (screenshots, with LUXSHELL_DRYRUN): night
 //                         light available, all three power profiles, and clicks change only that
 //                         state, caffeine included (services/NightLight, PowerProfile, Caffeine)
+//   LUXSHELL_FAKE_MONITORS  file with a `hyprctl monitors all -j` dump: Settings > Displays shows these
+//                         displays instead of the live ones (sandbox shots of a real monitor); changes
+//                         still go to the compositor qs runs in (apps/settings/pages/SysDisplays.qml)
 Singleton {
     id: root
 

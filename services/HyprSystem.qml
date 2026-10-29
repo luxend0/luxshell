@@ -68,7 +68,11 @@ Singleton {
             "input.kb_options": "",
             "input.numlock_by_default": false,
             "input.touchpad.natural_scroll": false,
-            "input.touchpad.scroll_factor": 1
+            "input.touchpad.scroll_factor": 1,
+            // Settings > Displays: main display (the cursor starts there), global VRR (read only:
+            // what a monitor without its own vrr follows)
+            "cursor.default_monitor": "",
+            "misc.vrr": 0
         })
     readonly property var blocked: ["input.repeat_rate", "input.repeat_delay"]
     // per-device fields and the global path a device follows while it has no own value
@@ -374,13 +378,24 @@ Singleton {
     function hz(r: real): string {
         return String(Math.round(r * 100) / 100);
     }
-    // hyprctl monitors entry -> hl.monitor fields (what a rule needs to keep it as it is)
+    // hyprctl monitors entry -> hl.monitor fields (what a rule needs to keep it as it is).
+    // hl.monitor MERGES with the rule Hyprland has (a field left out keeps its last value), so
+    // every field Settings > Displays may set is spelled out here: a reset or a rollback then
+    // puts it back too. vrr: the rule's value is not in hyprctl; active while misc.vrr is off
+    // means the monitor has its own (1).
     function specOfLive(m: var): var {
+        const miscVrr = Number(current("misc.vrr")) || 0;
+        const src = String(m.mirrorOf ?? "none") === "none" ? null : monitors.find(x => String(x.id) === String(m.mirrorOf) || x.name === m.mirrorOf);
         return {
             "mode": `${m.width}x${m.height}@${hz(m.refreshRate)}`,
             "position": `${m.x}x${m.y}`,
             "scale": round(m.scale),
-            "transform": m.transform
+            "transform": m.transform,
+            "bitdepth": /2101010|161616/i.test(String(m.currentFormat ?? "")) ? 10 : 8,
+            "cm": String(m.colorManagementPreset ?? "") !== "" ? String(m.colorManagementPreset) : "srgb",
+            "vrr": m.vrr === true && miscVrr === 0 ? 1 : miscVrr,
+            "mirror": src ? src.name : "",
+            "disabled": m.disabled === true
         };
     }
     // the full rule luxshell gives an output: base (as it was) + what was changed
