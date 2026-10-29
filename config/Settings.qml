@@ -109,6 +109,20 @@ Singleton {
     property int islandSysmonInterval: 3 // s between cpu/ram samples (2..10)
     property string islandKeyboardStyle: "code" // code ("DE") | name ("German")
     property int islandSpacerWidth: 24 // px of the spacer widget
+    // bar info + tool widgets (palette only, island/widgets: Gpu, Temp, NetSpeed, Updates, Tool, Privacy)
+    property string islandGpuShow: "load" // gpu widget: load | vram | both
+    property string islandGpuVram: "gb" // gpu widget VRAM: gb (used, GiB) | pct
+    property string islandTempShow: "both" // temps widget: cpu | gpu | both
+    property string islandTempCpuSensor: "tctl" // tctl (Tctl / Tdie / Package) | ccd (hottest CCD)
+    property string islandTempGpuSensor: "edge" // amdgpu hwmon: edge | junction | mem
+    property string islandNetSpeedShow: "both" // netspeed widget: both | down | up
+    property bool islandNetSpeedBits: false // netspeed in bits per second (Mb/s) instead of bytes
+    property string islandNetSpeedIface: "" // netspeed interface, "" = default route
+    property bool islandUpdatesHideZero: true // updates widget only while updates are pending
+    property bool islandUpdatesAur: true // updates widget counts AUR updates (paru -Qua)
+    property int islandUpdatesInterval: 60 // min between update checks (15..240)
+    property string islandPickerFormat: "hex" // colour picker: hex | rgb | hsl (hyprpicker -f)
+    property string islandPrivacyStyle: "icons" // privacy widget: icons (dot + what is in use) | dot
 
     // ---- look* : Appearance (colours, font, radius, transparency, shadow, border, scale) ----
     property real lookRadiusScale: 1 // corner radius factor: island + panels (island/IslandShape) and cards (Theme.rad)

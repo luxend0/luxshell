@@ -384,6 +384,305 @@ Singleton {
                 }
             ]
         },
+        // ---- bar info + tools (palette only; island/widgets: Gpu, Temp, NetSpeed, Updates,
+        // Tool, Privacy) ----
+        {
+            "id": "gpu",
+            "name": "GPU",
+            "icon": "gpu",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "GPU load and VRAM in use (amdgpu sysfs, the card with the most VRAM).",
+            "options": [
+                {
+                    "key": "islandGpuShow",
+                    "label": "Show",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "load",
+                            "label": "Load"
+                        },
+                        {
+                            "value": "vram",
+                            "label": "VRAM"
+                        },
+                        {
+                            "value": "both",
+                            "label": "Both"
+                        }
+                    ]
+                },
+                {
+                    "key": "islandGpuVram",
+                    "label": "VRAM as",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "gb",
+                            "label": "GB"
+                        },
+                        {
+                            "value": "pct",
+                            "label": "%"
+                        }
+                    ]
+                },
+                {
+                    "key": "islandSysmonInterval",
+                    "label": "Every",
+                    "kind": "slider",
+                    "min": 2,
+                    "max": 10,
+                    "step": 1,
+                    "unit": " s"
+                }
+            ]
+        },
+        {
+            "id": "temps",
+            "name": "Temperatures",
+            "icon": "thermometer",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "CPU and GPU temperature (hwmon: k10temp or zenpower, the card's amdgpu sensor).",
+            "options": [
+                {
+                    "key": "islandTempShow",
+                    "label": "Show",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "cpu",
+                            "label": "CPU"
+                        },
+                        {
+                            "value": "gpu",
+                            "label": "GPU"
+                        },
+                        {
+                            "value": "both",
+                            "label": "Both"
+                        }
+                    ]
+                },
+                {
+                    "key": "islandTempCpuSensor",
+                    "label": "CPU sensor",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "tctl",
+                            "label": "Tctl"
+                        },
+                        {
+                            "value": "ccd",
+                            "label": "Hottest CCD"
+                        }
+                    ]
+                },
+                {
+                    "key": "islandTempGpuSensor",
+                    "label": "GPU sensor",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "edge",
+                            "label": "Edge"
+                        },
+                        {
+                            "value": "junction",
+                            "label": "Junction"
+                        },
+                        {
+                            "value": "mem",
+                            "label": "Memory"
+                        }
+                    ]
+                },
+                {
+                    "key": "islandSysmonInterval",
+                    "label": "Every",
+                    "kind": "slider",
+                    "min": 2,
+                    "max": 10,
+                    "step": 1,
+                    "unit": " s"
+                }
+            ]
+        },
+        {
+            "id": "netspeed",
+            "name": "Network speed",
+            "icon": "arrow-down-up",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "Download and upload rate of the default-route interface (/proc/net/dev), the unit picked automatically.",
+            "options": [
+                {
+                    "key": "islandNetSpeedShow",
+                    "label": "Show",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "both",
+                            "label": "Both"
+                        },
+                        {
+                            "value": "down",
+                            "label": "Down"
+                        },
+                        {
+                            "value": "up",
+                            "label": "Up"
+                        }
+                    ]
+                },
+                {
+                    "key": "islandNetSpeedBits",
+                    "label": "Bits per second",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandNetSpeedIface",
+                    "label": "Interface",
+                    "kind": "text",
+                    "placeholder": "Default route"
+                },
+                {
+                    "key": "islandSysmonInterval",
+                    "label": "Every",
+                    "kind": "slider",
+                    "min": 2,
+                    "max": 10,
+                    "step": 1,
+                    "unit": " s"
+                }
+            ]
+        },
+        {
+            "id": "updates",
+            "name": "Updates",
+            "icon": "package",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "dim": true,
+            "desc": "Pending updates (checkupdates + paru -Qua), checked in the background at low priority. Click: paru -Syu in the terminal, right click: check now.",
+            "options": [
+                {
+                    "key": "islandUpdatesHideZero",
+                    "label": "Only when there are updates",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandUpdatesAur",
+                    "label": "Count AUR updates",
+                    "kind": "switch"
+                },
+                {
+                    "key": "islandUpdatesInterval",
+                    "label": "Check every",
+                    "kind": "slider",
+                    "min": 15,
+                    "max": 240,
+                    "step": 15,
+                    "unit": " min"
+                }
+            ]
+        },
+        {
+            "id": "screenshot",
+            "name": "Screenshot",
+            "icon": "camera",
+            "states": ["collapsed", "hover"],
+            "cls": "system",
+            "reveal": "extras",
+            "desc": "Click: a region (slurp), right click: the whole screen. Saved and copied like the control center's button.",
+            "options": []
+        },
+        {
+            "id": "colorpicker",
+            "name": "Color picker",
+            "icon": "pipette",
+            "states": ["collapsed", "hover"],
+            "cls": "system",
+            "reveal": "extras",
+            "desc": "hyprpicker: click a pixel, the value is copied and shown in the island.",
+            "options": [
+                {
+                    "key": "islandPickerFormat",
+                    "label": "Format",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "hex",
+                            "label": "HEX"
+                        },
+                        {
+                            "value": "rgb",
+                            "label": "RGB"
+                        },
+                        {
+                            "value": "hsl",
+                            "label": "HSL"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "launcher",
+            "name": "Launcher",
+            "icon": "search",
+            "states": ["collapsed", "hover"],
+            "cls": "system",
+            "reveal": "extras",
+            "desc": "Opens the launcher.",
+            "options": []
+        },
+        {
+            "id": "overview",
+            "name": "Overview",
+            "icon": "layout-dashboard",
+            "states": ["collapsed", "hover"],
+            "cls": "system",
+            "reveal": "extras",
+            "desc": "Opens the workspace overview.",
+            "options": []
+        },
+        {
+            "id": "privacy",
+            "name": "Privacy",
+            "icon": "circle-dot",
+            "states": ["collapsed", "hover"],
+            "cls": "status",
+            "reveal": "extras",
+            "desc": "Red dot while an app shares or records the screen, uses the camera or the microphone; hidden otherwise. Click: which apps.",
+            "options": [
+                {
+                    "key": "islandPrivacyStyle",
+                    "label": "Style",
+                    "kind": "segment",
+                    "items": [
+                        {
+                            "value": "icons",
+                            "label": "Dot + glyphs"
+                        },
+                        {
+                            "value": "dot",
+                            "label": "Dot"
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "id": "spacer",
             "name": "Spacer",
@@ -480,8 +779,15 @@ Singleton {
             return !(Settings.islandWindowYield && Media.hasTrack && (slotIds ?? []).includes("media"));
         case "tray":
             return trayCount() > 0;
+        case "updates":
+            return updatesShown();
+        case "privacy":
+            return Privacy.active;
         }
         return true;
+    }
+    function updatesShown(): bool {
+        return !Settings.islandUpdatesHideZero || Updates.count > 0;
     }
 
     // ---- measures ----------------------------------------------------------------------------
@@ -648,8 +954,39 @@ Singleton {
             return glyphText(si, o.islandKeyboardStyle === "name" ? KbLayout.name || "English (US)" : "WW");
         case "spacer":
             return o.islandSpacerWidth;
+        case "gpu":
+            {
+                const vram = o.islandGpuVram === "pct" ? "100%" : "88.8G";
+                return infoText(si, 1, o.islandGpuShow === "vram" ? vram : o.islandGpuShow === "both" ? `100% · ${vram}` : "100%");
+            }
+        case "temps":
+            return o.islandTempShow === "both" ? 2 * infoText(si, 1, "100°") + w.gaps.status[si] : infoText(si, 1, "100°");
+        case "netspeed":
+            {
+                const one = infoText(si, Theme.barInfo.arrowScale, o.islandNetSpeedBits ? "88.8 Mb/s" : "88.8 MB/s");
+                return o.islandNetSpeedShow === "both" ? 2 * one + w.gaps.status[si] : one;
+            }
+        case "updates":
+            return updatesShown() ? infoText(si, 1, Updates.ready ? String(Updates.count) : "–") : 0;
+        case "screenshot":
+        case "colorpicker":
+        case "launcher":
+        case "overview":
+            return (hv ? h.systemIconSize : w.systemIconSize) + 10;
+        case "privacy":
+            {
+                if (!Privacy.active)
+                    return 0;
+                const b = Theme.barInfo;
+                const n = o.islandPrivacyStyle === "dot" ? 0 : Privacy.glyphs.length;
+                return b.dotSize[si] + (n > 0 ? b.privacyGap[si] + n * Math.round(w.iconSize[si] * b.privacyIconScale) + (n - 1) * b.privacyIconGap[si] : 0);
+            }
         }
         return 0;
+    }
+    // InfoLabel (island/widgets): glyph (scaled) + gap + a text slot as wide as the sample
+    function infoText(si: int, iconScale: real, sample: string): real {
+        return Math.round(w.iconSize[si] * iconScale) + w.iconGap[si] + Math.ceil((si === 0 ? fmTextC : fmTextH).advanceWidth(sample));
     }
 
     function measureEnv(o: var): var {

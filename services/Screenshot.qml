@@ -20,13 +20,20 @@ Singleton {
     function take(): void {
         delay.restart();
     }
+    // "region" | "screen" regardless of Settings.ccScreenshotMode (island tool button)
+    property string forceMode: ""
+    function takeMode(mode: string): void {
+        forceMode = mode;
+        delay.restart();
+    }
 
     Timer {
         id: delay
         interval: Motion.ms(450) // panel morph back into the collapsed island
         onTriggered: {
             const dir = root.expand(Settings.ccScreenshotDir || "~/Pictures/Screenshots");
-            const mode = Settings.ccScreenshotMode === "screen" ? "screen" : "region";
+            const mode = root.forceMode !== "" ? root.forceMode : Settings.ccScreenshotMode === "screen" ? "screen" : "region";
+            root.forceMode = "";
             Exec.run(["sh", "-c", root.script, "luxshell-screenshot", dir, mode], `screenshot (${mode}) to ${dir}`);
         }
     }

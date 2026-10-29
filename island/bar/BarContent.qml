@@ -190,7 +190,16 @@ Item {
             "weather": cWeather,
             "cpu": cCpu,
             "ram": cRam,
-            "keyboard": cKeyboard
+            "keyboard": cKeyboard,
+            "gpu": cGpu,
+            "temps": cTemps,
+            "netspeed": cNetSpeed,
+            "updates": cUpdates,
+            "screenshot": cScreenshot,
+            "colorpicker": cColorPicker,
+            "launcher": cLauncher,
+            "overview": cOverview,
+            "privacy": cPrivacy
         })
 
     Component {
@@ -270,5 +279,51 @@ Item {
     Component {
         id: cKeyboard
         KeyboardWidget {}
+    }
+
+    // ---- bar info + tools (palette only) ----
+    Component {
+        id: cGpu
+        GpuWidget {}
+    }
+    Component {
+        id: cTemps
+        TempWidget {}
+    }
+    Component {
+        id: cNetSpeed
+        NetSpeedWidget {}
+    }
+    Component {
+        id: cUpdates
+        UpdatesWidget {}
+    }
+    Component {
+        id: cScreenshot
+        ToolButton {
+            kind: "screenshot"
+        }
+    }
+    Component {
+        id: cColorPicker
+        ToolButton {
+            kind: "colorpicker"
+        }
+    }
+    Component {
+        id: cLauncher
+        ToolButton {
+            kind: "launcher"
+        }
+    }
+    Component {
+        id: cOverview
+        ToolButton {
+            kind: "overview"
+        }
+    }
+    Component {
+        id: cPrivacy
+        PrivacyWidget {}
     }
 }

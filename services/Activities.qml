@@ -19,6 +19,7 @@ import qs.core
 //   detail   right-hand text (default: the percentage when value is set)
 //   dim      slider fill dimmed (muted sink)
 //   timeout  ms on screen (default 1600)
+//   swatch   optional colour ("#3b82f6"): a filled disc in that colour instead of the icon
 //
 //   Activities.show({ key: "caps", icon: "arrow-big-up-dash", label: "Caps Lock", detail: "On" })
 //
@@ -66,7 +67,8 @@ Singleton {
             "value": v,
             "detail": a.detail !== undefined && a.detail !== null ? String(a.detail) : (has ? Math.round(v * 100) + "%" : ""),
             "dim": !!a.dim,
-            "timeout": a.timeout ?? 0
+            "timeout": a.timeout ?? 0,
+            "swatch": a.swatch ?? "" // colour shown instead of the icon (colour picker), "" = icon
         };
     }
 

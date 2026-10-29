@@ -45,6 +45,10 @@ import Quickshell
 //                         qs runs in, i.e. the nested Hyprland of the sandbox) instead of only logging.
 //                         Sandbox tests of live Hyprland changes only, never on the real desktop
 //   LUXSHELL_FAKE_DEVICES=1  demo mice / touchpad / keyboards for Settings > Input (services/HyprSystem)
+//   LUXSHELL_FAKE_UPDATES  "12" or "12+3" (repo + AUR) pending updates for the island's updates widget
+//                         instead of running checkupdates / paru (services/Updates)
+//   LUXSHELL_FAKE_PRIVACY  "mic:Discord:discord,screen:OBS Studio:com.obsproject.Studio" (kind:app:icon)
+//                         replaces the live privacy list (services/Privacy; also ipc call privacy fake)
 Singleton {
     id: root
 
