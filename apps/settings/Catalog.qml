@@ -37,7 +37,10 @@ Singleton {
         SysInput {},
         SysSound {},
         SysNetwork {},
-        SysIdle {}
+        SysIdle {},
+        SysDefaultApps {},
+        SysStartup {},
+        SysDateTime {}
     ]
 
     // Sidebar groups, top to bottom; a page names its group (SettingsPage.group, default

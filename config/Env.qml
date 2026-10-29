@@ -71,6 +71,11 @@ import Quickshell
 //                         only for a registration test (it takes the requests of the real session)
 //   LUXSHELL_FAKE_POLKIT  1 = `ipc call polkit fake <kind>` shows demo requests (single | multi | service |
 //                         long, password "test"; no polkit, no PAM); a kind as the value also starts one at start
+//   LUXSHELL_DRYRUN_FAIL=1  with LUXSHELL_DRYRUN=1: every Exec.call (timedatectl, localectl, xdg-mime, ...) answers
+//                         with a refusal instead of success, to see the error display of the settings pages
+//   XDG_CONFIG_HOME       with LUXSHELL_DRYRUN=1 and a path other than ~/.config: Settings > Default Apps and
+//                         Startup Apps really write mimeapps.list and autostart/*.desktop there (Exec.callUser);
+//                         the sandbox points it at a copy in the scratchpad. Otherwise a dry run only logs
 Singleton {
     id: root
 
