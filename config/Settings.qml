@@ -270,6 +270,20 @@ Singleton {
         }) // per action: own shell command (sh -c); "" = default (luxshell lock, hl.dsp.exit(), systemctl ...)
     property bool powerDetails: true // info line under each action: lock keybind, open windows, kernel / updates since boot, uptime
 
+    // ---- idle* : Power & Idle (services/Idle, System > Power & Idle) ----
+    property bool idleEnabled: true // luxshell acts on idle (stages below, lock before sleep, loginctl lock-session); off = another idle daemon does it (Ambxst, hypridle)
+    property bool idleDim: true // dim the displays (services/Brightness) after idleDimAfter, back on input
+    property int idleDimAfter: 150 // s without input
+    property int idleDimLevel: 10 // % brightness while dimmed (a display that is already darker stays as it is)
+    property bool idleLock: true // lock screen (services/Lock) after idleLockAfter
+    property int idleLockAfter: 300 // s
+    property bool idleScreenOff: true // displays off (Hyprland DPMS) after idleScreenOffAfter, on again on input
+    property int idleScreenOffAfter: 330 // s
+    property bool idleSuspend: true // systemctl suspend after idleSuspendAfter (locks first while idleLockBeforeSleep)
+    property int idleSuspendAfter: 1800 // s
+    property bool idleMediaPause: true // no idle stage while an MPRIS player plays (Caffeine always pauses them)
+    property bool idleLockBeforeSleep: true // lock when the system goes to sleep (logind PrepareForSleep: idle, power menu, lid, systemctl)
+
     // ==== END OF KEYS ======================================================================
 
     // ---- API -------------------------------------------------------------------------------

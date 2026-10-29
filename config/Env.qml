@@ -52,6 +52,12 @@ import Quickshell
 //   LUXSHELL_FAKE_SWITCHES=1  bar switches with demo state (screenshots, with LUXSHELL_DRYRUN): night
 //                         light available, all three power profiles, and clicks change only that
 //                         state, caffeine included (services/NightLight, PowerProfile, Caffeine)
+//   LUXSHELL_IDLE_SCALE   factor for every idle timeout of services/Idle (Settings.idle*After); 0.02 turns
+//                         150 / 300 / 330 / 1800 s into 3 / 6 / 6.6 / 36 s (sandbox tests). Dim, lock, screen
+//                         off and suspend still go through Exec: with LUXSHELL_DRYRUN=1 they only log
+//   LUXSHELL_IDLE_LOGIND_BUS=session  services/Idle listens for logind (PrepareForSleep, Session.Lock) on the
+//                         session bus instead of the system bus: sandbox with LUXSB_DBUS=1 and a fake
+//                         org.freedesktop.login1 there (the real signals cannot be sent without sleeping / locking)
 Singleton {
     id: root
 
