@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.config
 
 // The one gate for every action that changes system state (Wi-Fi, Bluetooth,
@@ -25,5 +26,62 @@ Singleton {
     function run(argv: var, what: string): void {
         if (allow(`${what}: ${argv.join(" ")}`))
             Quickshell.execDetached(argv);
+    }
+
+    // ---- hyprctl eval (Hyprland Lua config) ---------------------------------------------
+    // Changes to the compositor's settings (services/HyprSystem: input, devices, monitors).
+    // done(ok, answer) gets Hyprland's reply ("ok" or the Lua error); in a dry run it is
+    // called with (true, "dry run") after the log line. LUXSHELL_HYPR_LIVE=1 lets the call
+    // through even in a dry run: the sandbox's nested Hyprland (never the real desktop).
+    readonly property bool hyprLive: Env.get("LUXSHELL_HYPR_LIVE") === "1"
+
+    function hyprEval(lua: string, what: string, done: var): void {
+        if (dry && !hyprLive) {
+            allow(`${what}: hyprctl eval ${lua}`);
+            if (done)
+                done(true, "dry run");
+            return;
+        }
+        if (dry)
+            console.info(`luxshell[dry, nested hyprctl]: ${what}: ${lua}`);
+        const p = evalProc.createObject(root, {
+            "done": done ?? null
+        });
+        p.command = ["hyprctl", "eval", lua];
+        p.running = true;
+    }
+
+    Component {
+        id: evalProc
+        Process {
+            id: proc
+            property var done: null
+            property int code: -1
+            property bool exited: false
+            property bool gotOutput: false
+            function finish(): void {
+                if (!exited || !gotOutput)
+                    return;
+                const text = evalOut.text.trim();
+                const ok = code === 0 && (text === "ok" || text === "");
+                if (!ok)
+                    console.warn(`luxshell: hyprctl eval: ${text || "exit " + code}`);
+                if (done)
+                    done(ok, text);
+                destroy();
+            }
+            stdout: StdioCollector {
+                id: evalOut
+                onStreamFinished: {
+                    proc.gotOutput = true;
+                    proc.finish();
+                }
+            }
+            onExited: c => {
+                code = c;
+                exited = true;
+                finish();
+            }
+        }
     }
 }

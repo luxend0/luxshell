@@ -31,8 +31,27 @@ Singleton {
         Keybinds {},
         Integrations {},
         System {},
-        Demo {}
+        Demo {},
+        // ---- group "system" (the OS; Hyprland values via services/HyprSystem) ----
+        SysInput {}
     ]
+
+    // Sidebar groups, top to bottom; a page names its group (SettingsPage.group, default
+    // "luxshell"). Captions show once more than one group has visible pages.
+    readonly property var groups: [
+        {
+            "id": "luxshell",
+            "title": "luxshell"
+        },
+        {
+            "id": "system",
+            "title": "System"
+        }
+    ]
+    function groupIndex(id: string): int {
+        const i = groups.findIndex(g => g.id === id);
+        return i < 0 ? 0 : i;
+    }
 
     function glyph(cp: int): string {
         return String.fromCodePoint(cp);
@@ -45,13 +64,18 @@ Singleton {
                 "subtitle": src.subtitle,
                 "icon": typeof src.icon === "number" ? (src.icon > 0 ? glyph(src.icon) : "") : src.icon,
                 "hidden": src.hidden,
+                "group": groups[groupIndex(src.group)].id,
                 "sections": src.sections.map(s => ({
                             "title": s.title ?? "",
                             "options": (s.options ?? []).map(o => root.normalize(o))
                         }))
             }))
 
-    readonly property var visiblePages: pages.filter(p => !p.hidden && p.sections.some(s => s.options.length > 0))
+    // in sidebar order: by group, then as listed in `sources`
+    readonly property var visiblePages: pages.map((p, i) => ({
+                "p": p,
+                "i": i
+            })).filter(x => !x.p.hidden && x.p.sections.some(s => s.options.length > 0)).sort((a, b) => groupIndex(a.p.group) - groupIndex(b.p.group) || a.i - b.i).map(x => x.p)
 
     function visible(id: string): bool {
         return visiblePages.some(p => p.id === id);
@@ -241,6 +265,11 @@ Singleton {
         const out = [];
         for (const p of visiblePages) {
             const hits = [];
+            // a label used by more than one row of the page (one per device) gets its section
+            const uses = {};
+            for (const s of p.sections)
+                for (const o of s.options)
+                    uses[o.label] = (uses[o.label] ?? 0) + 1;
             for (const s of p.sections)
                 for (const o of s.options) {
                     const hay = `${o.label} ${o.keywords ?? ""} ${s.title} ${p.title}`.toLowerCase();
@@ -248,7 +277,9 @@ Singleton {
                         continue;
                     const label = o.label.toLowerCase();
                     hits.push({
-                        "o": o,
+                        "o": uses[o.label] > 1 && o.label !== "" && s.title !== "" ? Object.assign({}, o, {
+                            "label": `${o.label} (${s.title})`
+                        }) : o,
                         "i": hits.length,
                         "rank": label.startsWith(q) ? 0 : label.includes(q) ? 1 : 2
                     });

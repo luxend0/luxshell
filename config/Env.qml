@@ -37,6 +37,14 @@ import Quickshell
 //                         since boot, "kernel" = running kernel replaced on disk (screenshots)
 //   LUXSHELL_FAKE_WEATHER  wttr.in answer "%x|%t|%C" (e.g. "m|+12°C|Partly cloudy") for the island's
 //                         weather widget instead of asking the network (services/Weather)
+//   LUXSHELL_SYSTEM_FILE  where services/HyprSystem writes the generated Hyprland system settings
+//                         (default $XDG_CONFIG_HOME/hypr/luxos/luxshell-system.lua); with LUXSHELL_DRYRUN=1
+//                         the default path is never written, only a file named here. Sandbox: ALWAYS
+//                         set it to a file in the scratchpad
+//   LUXSHELL_HYPR_LIVE=1  with LUXSHELL_DRYRUN=1: Exec.hyprEval still runs `hyprctl eval` (the compositor
+//                         qs runs in, i.e. the nested Hyprland of the sandbox) instead of only logging.
+//                         Sandbox tests of live Hyprland changes only, never on the real desktop
+//   LUXSHELL_FAKE_DEVICES=1  demo mice / touchpad / keyboards for Settings > Input (services/HyprSystem)
 Singleton {
     id: root
 

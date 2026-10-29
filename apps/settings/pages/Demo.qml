@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.apps.settings
 
 // "Option types": one row of every kind added after the video, as a living reference
 // for page authors. Hidden unless LUXSHELL_SETTINGS_DEMO=1. The rows write into a
@@ -83,6 +84,25 @@ SettingsPage {
             "icon": glyph(0xF036C)
         }
     ]
+
+    // "Keep these settings?" (SettingsApp.askKeep): changes the tint above, then asks
+    property string keepAnswer: "Not tried yet"
+    readonly property var keepTints: ["#3b82f6", "#e5484d", "#30a46c", "#f5a524", "#8e8e93"]
+    function tryKeep(): void {
+        const old = store.tint;
+        const next = keepTints[(keepTints.indexOf(old) + 1) % keepTints.length];
+        set("tint", next);
+        keepAnswer = "Waiting...";
+        SettingsApp.askKeep({
+            "title": "Keep this tint?",
+            "text": `The Tint row above is now ${next}. Without an answer it goes back to ${old}.`,
+            "keep": () => page.keepAnswer = `Kept ${next}`,
+            "revert": () => {
+                page.set("tint", old);
+                page.keepAnswer = `Reverted to ${old}`;
+            }
+        });
+    }
 
     // "custom" rows embed any QML: here a tiny zone editor (drag the chips)
     Component {
@@ -203,6 +223,27 @@ SettingsPage {
                     "label": "Notes file",
                     "keywords": "demo file path",
                     "placeholder": "~/notes.md"
+                }
+            ]
+        },
+        {
+            "title": "Keep dialog",
+            "options": [
+                {
+                    "id": "demoKeep",
+                    "kind": "button",
+                    "label": "Change the tint, then keep or revert",
+                    "keywords": "demo keep revert countdown confirm dialog monitor rollback",
+                    "value": () => "",
+                    "action": "Try",
+                    "run": () => page.tryKeep()
+                },
+                {
+                    "id": "demoKeepAnswer",
+                    "kind": "info",
+                    "label": "Last answer",
+                    "keywords": "demo keep revert result",
+                    "value": () => page.keepAnswer
                 }
             ]
         },

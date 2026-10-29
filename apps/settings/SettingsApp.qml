@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.config
 import qs.core
+import qs.services
 
 // Settings app state: open/closed, current page, back/forward history, search text.
 // The window itself (SettingsWindow.qml) exists only while open (SettingsHost.qml).
@@ -24,8 +25,8 @@ import qs.core
 //   qs -c luxshell ipc call settings importFile <path>      replaces every preference
 //
 // Page ids: Catalog.pages (bar, media, clock, appearance, wallpaper, motion, launcher,
-// notifications, controlcenter, lockscreen, keybinds, integrations, system, demo);
-// empty ones are hidden.
+// notifications, controlcenter, lockscreen, keybinds, integrations, system, demo; group
+// "system": input); empty ones are hidden.
 //
 // Before the first open a window rule for this window is registered in the running
 // Hyprland (hyprctl eval, like services/GameMode): floating, no border/shadow/blur,
@@ -68,6 +69,40 @@ Singleton {
         toastSeq++;
     }
 
+    // ---- "Keep these settings?" (KeepDialog.qml, over the window) ----------------------------
+    // askKeep({ title, text, seconds, keepLabel, revertLabel, icon, keep, revert }): the change is
+    // already live; the dialog counts down (default 15 s). Keep calls keep(); Revert, Esc, the
+    // end of the countdown and closing the window call revert(). Opens the window when closed.
+    // A request while one is open replaces it and starts the countdown again; the first one's
+    // callbacks are dropped (HyprSystem.begin/commit/rollback span both changes).
+    //   HyprSystem.begin(); HyprSystem.setMonitor("DP-3", { scale: 1.25 });
+    //   SettingsApp.askKeep({ title: "Keep this display setting?", keep: () => HyprSystem.commit(), revert: () => HyprSystem.rollback() });
+    property var keepRequest: null
+    property int keepSeq: 0
+    function askKeep(req: var): void {
+        keepRequest = Object.assign({
+            "title": "Keep these settings?",
+            "text": "",
+            "seconds": 15,
+            "keepLabel": "Keep",
+            "revertLabel": "Revert",
+            "icon": 0xF02DA // md-history
+        }, req ?? {});
+        keepSeq++;
+        if (!open && !pendingOpen)
+            show("");
+    }
+    function settleKeep(kept: bool): void {
+        const r = keepRequest;
+        if (!r)
+            return;
+        keepRequest = null;
+        keepSeq++;
+        const fn = kept ? r.keep : r.revert;
+        if (typeof fn === "function")
+            fn();
+    }
+
     function show(id: string): void {
         if (id !== undefined && id !== "") {
             if (open || pendingOpen)
@@ -89,6 +124,7 @@ Singleton {
         }
     }
     function hide(): void {
+        settleKeep(false); // a pending "Keep these settings?" can no longer be answered: revert
         pendingOpen = false;
         open = false;
         query = ""; // a new window starts on its page, not on old results
@@ -197,6 +233,26 @@ Singleton {
         }
         function changed(): string {
             return JSON.stringify(Settings.keys().filter(k => !Settings.isDefault(k)));
+        }
+        // try a monitor change with the "Keep these settings?" countdown (Displays page, tests):
+        // qs ipc call settings tryMonitor HEADLESS-1 '{"scale": 1.25}'
+        function tryMonitor(output: string, fields: string): string {
+            let f;
+            try {
+                f = JSON.parse(fields);
+            } catch (e) {
+                return "fields: no JSON object";
+            }
+            HyprSystem.begin();
+            HyprSystem.setMonitor(output, f);
+            root.askKeep({
+                "title": "Keep this display setting?",
+                "text": `${output}: ${Object.keys(f).map(k => `${k} ${f[k]}`).join(", ")}`,
+                "icon": 0xF0379, // md-monitor
+                "keep": () => HyprSystem.commit(),
+                "revert": () => HyprSystem.rollback()
+            });
+            return "ok";
         }
         function exportFile(path: string): void {
             Backup.exportTo(path);

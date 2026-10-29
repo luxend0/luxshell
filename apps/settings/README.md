@@ -65,15 +65,20 @@ SettingsPage {
 }
 ```
 
-then one line in `Catalog.qml` `sources`, at its sidebar position. A page without options
+then one line in `Catalog.qml` `sources`, at its sidebar position. A page of the OS (not of
+luxshell itself) sets `group: "system"`: the sidebar shows two groups, "luxshell" (every page
+without `group`) and "System", each under a caption (`Catalog.groups`, order there; within a
+group the order of `sources`). Search covers both groups. A page without options
 (or `hidden: true`) stays out of the sidebar and search. Timers, Processes and Components
 the page needs go straight inside it (see `pages/Motion.qml`, `pages/Launcher.qml`).
 Existing pages: `BarIsland, Media, ClockDate, Appearance, ThemeEditor, Wallpaper, Motion, Launcher,
-OverviewPickers, Notifications, ControlCenter, LockScreen, PowerPage, Keybinds, Integrations, System, Demo`.
+OverviewPickers, Notifications, ControlCenter, LockScreen, PowerPage, Keybinds, Integrations, System, Demo`;
+group "system": `SysInput` (file names of system pages start with `Sys`).
 Reusable custom rows in `pages/`: `HiddenList.qml` (ids to exclude, "Add" opens a filterable
 dropdown: launcher apps, media players), `CcPreview.qml` (the control center's real main page,
 scaled down, live), `Note.qml` (a wrapped paragraph without label under an option: what it
 changes, how to undo it; field `text`, string or function).
+`LayoutList.qml` (keyboard layouts: keycap, name, variant dropdown, reorder, add from every XKB layout).
 `NoteRow.qml` (bare row: label left, a note right that turns into a warning while `warn()`;
 fields `title`, `note()`, `warn()`), `KeyRow.qml` (one Hyprland shortcut with "Press keys..."
 recording and conflict note, services/Keybinds), `NotifRules.qml` (app -> rule list).
@@ -200,6 +205,53 @@ for a row with its own edit history (asked on every row of the page, return true
 
 Inside your own controls do not write `row: row` (the property shadows the id); name it
 differently (`owner: row`).
+
+## System pages: Hyprland values (`services/HyprSystem`)
+
+Pages of the group "system" that change Hyprland (input, devices, monitors, autostart) keep
+no Settings keys: their rows use `store: HyprSystem` with a Hyprland path as `key`.
+
+```js
+{ "id": "inputSensitivity", "kind": "slider", "store": HyprSystem, "key": "input.sensitivity", ... }
+{ "id": "dev-g305-speed", "kind": "slider", "store": HyprSystem, "key": "device:logitech-g305-1:sensitivity", ... }
+```
+
+- `key` is an `hl.config` path (`input.touchpad.natural_scroll`; it must be listed in
+  `HyprSystem.tracked` with Hyprland's default) or `device:<name>:<field>` (an own value of one
+  device; `HyprSystem.deviceFields`, without one the device follows the global path).
+- The row shows what Hyprland has now; a change goes live at once (`hyprctl eval`, Lua) and into
+  the generated file; the reset arrow gives the value back to the rest of the Hyprland config
+  (the value it had before luxshell first changed it). A value equal to that is a reset too.
+- Two paths edited as one row (layouts + variants): a small store object in the page with
+  `get/set/isDefault/reset/defaultOf` over `HyprSystem.setMany()` / `resetMany()` (`SysInput.qml`).
+- Monitors: `HyprSystem.setMonitor(output, { mode, position, scale, transform, vrr, bitdepth,
+  disabled })`, `resetMonitor(output)`, `monitorSpec(output)`, `HyprSystem.monitors`. Always
+  through "Keep these settings?" (below). Autostart: `HyprSystem.autostart`, `setAutostart(list)`.
+- File: `~/.config/hypr/luxos/luxshell-system.lua` (`LUXSHELL_SYSTEM_FILE`; in the sandbox
+  ALWAYS a scratchpad path), generated, written only when its text changes (tmp + mv). The
+  values themselves: `<config dir>/system.json`. hyprland.lua runs the file at its very end.
+- Key repeat is not offered (it stays off on purpose): `input.repeat_*` paths are refused.
+- Sandbox: `LUXSHELL_DRYRUN=1` only logs the `hyprctl eval` calls; add `LUXSHELL_HYPR_LIVE=1` to
+  send them to the nested Hyprland, `LUXSHELL_FAKE_DEVICES=1` for demo mice / touchpad.
+  IPC: `qs ... ipc call system state | file | get <key> | set <key> <json> | reset <key>`.
+
+## "Keep these settings?" (`KeepDialog.qml`)
+
+For changes that can leave the screen unusable (monitor mode, scale, position): apply live,
+then ask. The dialog dims the window, counts down (default 15 s) and reverts on its own;
+Esc, Revert and closing the window revert too, the keyboard starts on Revert.
+
+```js
+HyprSystem.begin();                               // applied live, not written
+HyprSystem.setMonitor("DP-3", { "scale": 1.25 });
+SettingsApp.askKeep({
+    "title": "Keep this display setting?", "text": "DP-3: scale 1.25", "icon": 0xF0379,
+    "seconds": 15, "keep": () => HyprSystem.commit(), "revert": () => HyprSystem.rollback()
+});
+```
+
+`askKeep` takes any `keep` / `revert` functions (Option types page: "Keep dialog" changes the
+demo tint). IPC test: `qs ... ipc call settings tryMonitor <output> '{"scale": 1.25}'`.
 
 ## Reset and undo
 

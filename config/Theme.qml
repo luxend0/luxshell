@@ -996,4 +996,28 @@ Singleton {
         readonly property color armedInk: "#ffffff"
         readonly property color armedTile: Qt.rgba(1, 1, 1, 0.18)
     }
+
+    // ---- settings app: sidebar groups + "Keep these settings?" dialog (sys-base) -----------
+    // Sidebar: a caption line ("luxshell", "System") above each group of pages, in the style
+    // of the page captions. Keep dialog: a card over the dimmed window, countdown line,
+    // Revert / Keep (apps/settings/KeepDialog.qml).
+    readonly property QtObject settingsSys: QtObject {
+        readonly property int groupHead: 32          // caption line above a group (sidebar)
+        readonly property real groupLabelY: 19       // caption centre from the top of that line
+        readonly property int groupLabelX: 24        // from the sidebar's left edge (= icon discs)
+        readonly property int groupGap: 10           // extra space above every group but the first
+        readonly property int keepWidth: 440
+        readonly property int keepPad: 26
+        readonly property int keepRadius: Math.round(root.rad(22))
+        readonly property int keepDisc: 52
+        readonly property int keepIconSize: 28
+        readonly property int keepTitleSize: 20
+        readonly property int keepTrack: 4           // countdown line
+        readonly property int keepButtonHeight: 36
+        readonly property int keepButtonGap: 10
+        readonly property color scrim: Qt.rgba(0, 0, 0, 0.55)
+        readonly property color keepCard: root.settings.menu
+        readonly property color keepTrackColor: root.settings.field
+        readonly property color keepFill: root.accent
+    }
 }

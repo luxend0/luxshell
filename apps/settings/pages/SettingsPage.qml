@@ -5,6 +5,7 @@ import QtQuick
 //
 //   SettingsPage {
 //       pageId: "bar"; title: "Bar & Island"; subtitle: "..."; icon: 0xF1513
+//       group: "system"   (only for pages of the OS, default "luxshell")
 //       sections: [{ "title": "", "options": [{ "id": "workspaces", "kind": "slider", "key": "workspaceCount", ... }] }]
 //   }
 //
@@ -19,6 +20,7 @@ QtObject {
     property string title: ""
     property string subtitle: ""
     property var icon: 0         // Material Design codepoint of the Nerd Font (0xF03D8) or a glyph string
+    property string group: "luxshell" // sidebar group: "luxshell" (the shell) | "system" (the OS, Catalog.groups)
     property bool hidden: false
     property var sections: []
     default property list<QtObject> data

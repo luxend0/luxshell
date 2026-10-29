@@ -24,6 +24,8 @@ ShellRoot {
     readonly property var integrations: [AppThemes, HyprLook]
     // singletons that act on their own from the start: keybind file (services/Keybinds), focus schedule (services/Focus)
     readonly property var behaviour: [Keybinds.enabled, Focus.enabled]
+    // Hyprland values of Settings > System (services/HyprSystem): read at start, put back what Hyprland lacks, IPC "system"
+    readonly property var system: [HyprSystem.ready]
 
     Variants {
         model: Quickshell.screens

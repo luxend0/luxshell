@@ -46,6 +46,38 @@ FloatingWindow {
     readonly property var flatCount: sections.reduce((n, s) => n + s.options.length, 0)
     readonly property int pageIndex: Catalog.visiblePages.findIndex(p => p.id === page.id)
 
+    // sidebar rows and group captions, in the sidebar's content coordinates. One group only:
+    // no caption, rows exactly where the video has them.
+    readonly property QtObject gs: Theme.settingsSys
+    readonly property var sideLayout: {
+        const pages = Catalog.visiblePages;
+        const grouped = new Set(pages.map(p => p.group)).size > 1;
+        const rows = [], heads = [];
+        let y = g.sideTop - g.pageTop;
+        let last = null;
+        for (const p of pages) {
+            if (grouped && p.group !== last) {
+                if (last === null)
+                    y = 0;
+                else
+                    y += gs.groupGap;
+                heads.push({
+                    "title": Catalog.groups[Catalog.groupIndex(p.group)].title,
+                    "y": y
+                });
+                y += gs.groupHead;
+            }
+            last = p.group;
+            rows.push(y);
+            y += g.sideStep;
+        }
+        return {
+            "rows": rows,
+            "heads": heads,
+            "height": y
+        };
+    }
+
     // controller handed to every row
     readonly property QtObject host: QtObject {
         readonly property bool kb: win.kb
@@ -158,6 +190,10 @@ FloatingWindow {
         const shift = event.modifiers & Qt.ShiftModifier;
         event.accepted = true;
         kb = true;
+        if (keep.shown) {
+            keep.key(event);
+            return;
+        }
         if (menu.shown) {
             menu.key(event);
             return;
@@ -395,10 +431,12 @@ FloatingWindow {
     // scrolls once there are more pages than fit (the video's 11 do)
     function revealSide(): void {
         const max = Math.max(0, side.contentHeight - side.height);
-        const top = win.g.sideTop - side.y + Math.max(0, pageIndex) * win.g.sideStep;
+        const top = sideLayout.rows[Math.max(0, pageIndex)] ?? 0;
         let y = side.contentY;
-        if (top - 8 < y)
-            y = top - 8;
+        // the first row of a group brings its caption along
+        const head = sideLayout.heads.find(h => h.y + win.gs.groupHead === top);
+        if ((head ? head.y : top - 8) < y)
+            y = head ? head.y : top - 8;
         else if (top + win.g.sideRowHeight + 8 > y + side.height)
             y = top + win.g.sideRowHeight + 8 - side.height;
         side.contentY = Math.max(0, Math.min(max, y));
@@ -412,9 +450,9 @@ FloatingWindow {
         height: win.height - y
         clip: true
         contentWidth: width
-        contentHeight: win.g.sideTop - y + Catalog.visiblePages.length * win.g.sideStep + 14
+        contentHeight: win.sideLayout.height + 14
         boundsBehavior: Flickable.StopAtBounds
-        interactive: contentHeight > height && !menu.shown && !colorPop.shown
+        interactive: contentHeight > height && !menu.shown && !colorPop.shown && !keep.shown
         onHeightChanged: win.revealSide()
         onContentHeightChanged: win.revealSide()
         Behavior on contentY {
@@ -427,7 +465,7 @@ FloatingWindow {
         Rectangle {
             id: highlight
             x: win.g.sideX
-            y: Math.round(win.g.sideTop - side.y + Math.max(0, win.pageIndex) * win.g.sideStep)
+            y: Math.round(win.sideLayout.rows[Math.max(0, win.pageIndex)] ?? 0)
             width: win.g.sideWidth
             height: win.g.sideRowHeight
             radius: win.g.sideRadius
@@ -445,6 +483,20 @@ FloatingWindow {
             }
         }
 
+        // group captions ("luxshell", "System"), styled like the page captions
+        Repeater {
+            model: win.sideLayout.heads
+
+            SText {
+                required property var modelData
+                x: win.gs.groupLabelX
+                y: Math.round(modelData.y + win.gs.groupLabelY - height / 2)
+                size: win.g.labelSize
+                text: modelData.title
+                color: win.g.caption
+            }
+        }
+
         Repeater {
             model: Catalog.visiblePages
 
@@ -452,7 +504,7 @@ FloatingWindow {
                 required property var modelData
                 required property int index
                 x: win.g.sideX
-                y: Math.round(win.g.sideTop - side.y + index * win.g.sideStep)
+                y: Math.round(win.sideLayout.rows[index] ?? 0)
                 page: modelData
                 current: !win.searching && index === win.pageIndex
                 ring: win.kb && win.zone === "sidebar" && !search.activeFocus && index === win.pageIndex
@@ -492,7 +544,7 @@ FloatingWindow {
         contentHeight: column.height + win.g.padBottom
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.VerticalFlick
-        interactive: !menu.shown && !colorPop.shown
+        interactive: !menu.shown && !colorPop.shown && !keep.shown
 
         Anim {
             id: scrollAnim
@@ -606,5 +658,17 @@ FloatingWindow {
     Tip {
         id: tipItem
         anchors.fill: parent
+    }
+
+    // "Keep these settings?" (SettingsApp.askKeep): above everything, takes every key
+    KeepDialog {
+        id: keep
+        anchors.fill: parent
+        kb: win.kb
+        onShownChanged: if (shown) {
+            menu.close();
+            colorPop.close();
+            keys.forceActiveFocus();
+        }
     }
 }
