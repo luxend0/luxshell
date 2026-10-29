@@ -73,7 +73,9 @@ group the order of `sources`). Search covers both groups. A page without options
 the page needs go straight inside it (see `pages/Motion.qml`, `pages/Launcher.qml`).
 Existing pages: `BarIsland, Media, ClockDate, Appearance, ThemeEditor, Wallpaper, Motion, Launcher,
 OverviewPickers, Notifications, ControlCenter, LockScreen, PowerPage, Keybinds, Integrations, System, Demo`;
-group "system": `SysInput`, `SysIdle` (file names of system pages start with `Sys`).
+group "system": `SysDisplays`, `SysInput`, `SysSound`, `SysNetwork`, `SysIdle` (file names of system
+pages start with `Sys`). Lists of devices / profiles inside a system card: `sysnet/` (`Line.qml`: icon
+disc, name + sub line, buttons, unfolding details; `ConfirmButton.qml`: second click confirms).
 Reusable custom rows in `pages/`: `HiddenList.qml` (ids to exclude, "Add" opens a filterable
 dropdown: launcher apps, media players), `CcPreview.qml` (the control center's real main page,
 scaled down, live), `Note.qml` (a wrapped paragraph without label under an option: what it
@@ -102,6 +104,8 @@ recording and conflict note, services/Keybinds), `NotifRules.qml` (app -> rule l
 | `keys*` | Keybinds (outside luxshell, default off) |
 | `integration*` | apps theme, Hyprland look (outside luxshell, default off) |
 | `idle*` | System > Power & Idle (services/Idle: dim, lock, screen off, sleep) |
+| `sound*` | System > Sound (volume limit for scrolling / OSD, volume click) |
+| `bt*` | System > Network & Bluetooth (devices luxshell connects automatically) |
 
 Keys from before the prefixes (`theme`, `accent`, `fontFamily`, `fontSize`, `hoverHold`,
 `workspaceCount`, ...) keep their names: never rename a key. If one really has to move,

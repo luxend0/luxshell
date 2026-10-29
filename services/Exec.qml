@@ -51,6 +51,55 @@ Singleton {
         p.running = true;
     }
 
+    // ---- a command with an answer (nmcli, pactl, bluetoothctl) ---------------------------
+    // Like run(), but done(ok, text) gets the exit (code 0) and stdout + stderr, so the caller
+    // can re-read state or show the error (System > Sound, Network & Bluetooth). In a dry run
+    // only the log line, then done(true, "dry run").
+    function runDone(argv: var, what: string, done: var): void {
+        if (!allow(`${what}: ${argv.join(" ")}`)) {
+            if (done)
+                done(true, "dry run");
+            return;
+        }
+        const p = cmdProc.createObject(root, {
+            "done": done ?? null
+        });
+        p.command = argv;
+        p.running = true;
+    }
+
+    Component {
+        id: cmdProc
+        Process {
+            id: cp
+            property var done: null
+            property int code: -1
+            property int pending: 3 // stdout, stderr, exit
+            function step(): void {
+                if (--pending > 0)
+                    return;
+                const text = (cpOut.text + "\n" + cpErr.text).trim();
+                if (code !== 0)
+                    console.warn(`luxshell: ${command[0]}: ${text || "exit " + code}`);
+                if (done)
+                    done(code === 0, text);
+                destroy();
+            }
+            stdout: StdioCollector {
+                id: cpOut
+                onStreamFinished: cp.step()
+            }
+            stderr: StdioCollector {
+                id: cpErr
+                onStreamFinished: cp.step()
+            }
+            onExited: c => {
+                code = c;
+                step();
+            }
+        }
+    }
+
     Component {
         id: evalProc
         Process {

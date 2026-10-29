@@ -284,6 +284,13 @@ Singleton {
     property bool idleMediaPause: true // no idle stage while an MPRIS player plays (Caffeine always pauses them)
     property bool idleLockBeforeSleep: true // lock when the system goes to sleep (logind PrepareForSleep: idle, power menu, lid, systemctl)
 
+    // ---- sound* : System > Sound (services/Audio, Activities) ----
+    property int soundMaxVolume: 100 // % the volume may reach by scrolling (bar, OSD) and on the Sound page; 125 / 150 = boost
+    property bool soundFeedback: false // short click (audio-volume-change.oga, pw-play) after the volume changed by scrolling / the Sound page
+
+    // ---- bt* : System > Network & Bluetooth (services/Bt) ----
+    property var btAutoConnect: [] // device addresses luxshell connects when Bluetooth comes on (and at start)
+
     // ==== END OF KEYS ======================================================================
 
     // ---- API -------------------------------------------------------------------------------
