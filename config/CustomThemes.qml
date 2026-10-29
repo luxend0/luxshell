@@ -240,10 +240,8 @@ Singleton {
             if (code !== 0)
                 console.warn(`luxshell: theme file job failed (${code}): ${worker.command.slice(0, 2).join(" ")}`);
             // a folder created by our first write is not watched yet: point the model at it again
-            if (folder.count === 0 && root._queue.length === 0) {
-                folder.folder = "";
-                folder.folder = Qt.binding(() => "file://" + root.dir);
-            }
+            if (folder.count === 0 && root._queue.length === 0)
+                root._rescan();
             root._next();
         }
     }
@@ -303,10 +301,27 @@ Singleton {
         }
     }
 
+    // FolderListModel lists the working directory (~) when its folder does not exist, which
+    // read every ~/*.json as a theme: the folder is created first, nothing matches until then
+    property bool dirMade: false
+    Process {
+        running: true
+        command: ["mkdir", "-p", root.dir]
+        onExited: {
+            root.dirMade = true;
+            root._rescan();
+        }
+    }
+    // point the model at the folder again (a folder created after the first scan is not
+    // watched); "/." names the same folder with another url, an empty one would mean ~
+    function _rescan(): void {
+        folder.folder = "file://" + root.dir + "/.";
+        folder.folder = Qt.binding(() => "file://" + root.dir);
+    }
     FolderListModel {
         id: folder
         folder: "file://" + root.dir
-        nameFilters: ["*.json"]
+        nameFilters: root.dirMade ? ["*.json"] : ["luxshell-no-theme-before-mkdir"]
         showDirs: false
         showDotAndDotDot: false
         showHidden: false
@@ -317,7 +332,7 @@ Singleton {
 
     property int loadedCount: 0
     function _checkReady(): void {
-        if (!ready && folder.status === FolderListModel.Ready && loadedCount >= folder.count)
+        if (!ready && dirMade && folder.status === FolderListModel.Ready && loadedCount >= folder.count)
             ready = true;
     }
     Timer {
