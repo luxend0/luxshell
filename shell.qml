@@ -26,6 +26,8 @@ ShellRoot {
     readonly property var behaviour: [Keybinds.enabled, Focus.enabled]
     // Hyprland values of Settings > System (services/HyprSystem): read at start, put back what Hyprland lacks, IPC "system"
     readonly property var system: [HyprSystem.ready]
+    // polkit agent (only with LUXSHELL_POLKIT=1) + IPC "polkit", services/Polkit
+    readonly property var polkit: [Polkit.enabled]
 
     Variants {
         model: Quickshell.screens

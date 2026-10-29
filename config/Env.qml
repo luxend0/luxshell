@@ -52,6 +52,11 @@ import Quickshell
 //   LUXSHELL_FAKE_SWITCHES=1  bar switches with demo state (screenshots, with LUXSHELL_DRYRUN): night
 //                         light available, all three power profiles, and clicks change only that
 //                         state, caffeine included (services/NightLight, PowerProfile, Caffeine)
+//   LUXSHELL_POLKIT=1     register luxshell as the polkit authentication agent (services/Polkit, prompt
+//                         panels/PolkitPrompt). Off by default: one agent per session; a sandbox sets it
+//                         only for a registration test (it takes the requests of the real session)
+//   LUXSHELL_FAKE_POLKIT  1 = `ipc call polkit fake <kind>` shows demo requests (single | multi | service |
+//                         long, password "test"; no polkit, no PAM); a kind as the value also starts one at start
 Singleton {
     id: root
 
@@ -70,6 +75,8 @@ Singleton {
     readonly property bool settingsDemo: get("LUXSHELL_SETTINGS_DEMO") === "1"
     readonly property string integrationRoot: get("LUXSHELL_INTEGRATION_ROOT")
     readonly property string fakeWeather: get("LUXSHELL_FAKE_WEATHER")
+    readonly property bool polkit: get("LUXSHELL_POLKIT") === "1"
+    readonly property string fakePolkit: get("LUXSHELL_FAKE_POLKIT")
     readonly property string configDir: {
         const own = get("LUXSHELL_CONFIG_DIR");
         if (own !== "")
