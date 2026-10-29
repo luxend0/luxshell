@@ -35,7 +35,10 @@ Singleton {
         // ---- group "system" (the OS; Hyprland values via services/HyprSystem) ----
         SysDisplays {},
         SysInput {},
-        SysIdle {}
+        SysIdle {},
+        SysDefaultApps {},
+        SysDateTime {},
+        SysStartup {}
     ]
 
     // Sidebar groups, top to bottom; a page names its group (SettingsPage.group, default

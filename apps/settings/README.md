@@ -236,6 +236,21 @@ no Settings keys: their rows use `store: HyprSystem` with a Hyprland path as `ke
   send them to the nested Hyprland, `LUXSHELL_FAKE_DEVICES=1` for demo mice / touchpad.
   IPC: `qs ... ipc call system state | file | get <key> | set <key> <json> | reset <key>`.
 
+## System pages outside Hyprland (Default Apps, Date & Time, Startup Apps)
+
+`SysDefaultApps` (services/DefaultApps: `xdg-mime`), `SysDateTime` (services/SysClock:
+`timedatectl`, services/SysLocale: `localectl`) and `SysStartup` (services/Autostart: XDG autostart
+files, luxshell's `HyprSystem.autostart`, Hyprland's `hl.exec_cmd` lines read only) keep no luxshell
+keys: their rows set `resettable: false` and use `value`/`set`. Changes run through
+`Exec.call(argv, what, done)` (`Exec.runDone` plus `LUXSHELL_DRYRUN_FAIL`; polkit asks) or, for files under
+`$XDG_CONFIG_HOME` (mimeapps.list, autostart/), `Exec.callUser` (a dry run writes them only when
+`XDG_CONFIG_HOME` is not ~/.config, i.e. the sandbox's scratch copy). A failure shows as an
+`ErrorNote.qml` row under the rows it belongs to until dismissed; `LUXSHELL_DRYRUN_FAIL=1` makes every
+dry-run `Exec.call` fail to see it. Reusable rows: `ErrorNote.qml` (warning paragraph + dismiss),
+`StartupList.qml` (entries with icon, caption, switch, remove that asks first, lock for read only,
+optional "Add ..." dropdown). The terminal row reuses the Launcher page's key `terminal` and its
+list of installed terminals; 12/24-hour and keyboard layout are links to Clock & Date and Input.
+
 ## "Keep these settings?" (`KeepDialog.qml`)
 
 For changes that can leave the screen unusable (monitor mode, scale, position): apply live,

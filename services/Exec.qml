@@ -51,6 +51,55 @@ Singleton {
         p.running = true;
     }
 
+    // ---- a command with an answer (nmcli, pactl, bluetoothctl) ---------------------------
+    // Like run(), but done(ok, text) gets the exit (code 0) and stdout + stderr, so the caller
+    // can re-read state or show the error (System > Sound, Network & Bluetooth). In a dry run
+    // only the log line, then done(true, "dry run").
+    function runDone(argv: var, what: string, done: var): void {
+        if (!allow(`${what}: ${argv.join(" ")}`)) {
+            if (done)
+                done(true, "dry run");
+            return;
+        }
+        const p = cmdProc.createObject(root, {
+            "done": done ?? null
+        });
+        p.command = argv;
+        p.running = true;
+    }
+
+    Component {
+        id: cmdProc
+        Process {
+            id: cp
+            property var done: null
+            property int code: -1
+            property int pending: 3 // stdout, stderr, exit
+            function step(): void {
+                if (--pending > 0)
+                    return;
+                const text = (cpOut.text + "\n" + cpErr.text).trim();
+                if (code !== 0)
+                    console.warn(`luxshell: ${command[0]}: ${text || "exit " + code}`);
+                if (done)
+                    done(code === 0, text);
+                destroy();
+            }
+            stdout: StdioCollector {
+                id: cpOut
+                onStreamFinished: cp.step()
+            }
+            stderr: StdioCollector {
+                id: cpErr
+                onStreamFinished: cp.step()
+            }
+            onExited: c => {
+                code = c;
+                step();
+            }
+        }
+    }
+
     Component {
         id: evalProc
         Process {
@@ -83,5 +132,41 @@ Singleton {
                 finish();
             }
         }
+    }
+
+    // ---- sys-apps-time: polkit refusals in tests, user files in the sandbox ------------------
+    // call(): runDone() for changes whose failure the user has to see (timedatectl, localectl:
+    // polkit asks). LUXSHELL_DRYRUN_FAIL=1 makes a dry run answer done(false, <a refusal>) instead
+    // of success, to see the error display of the settings pages.
+    readonly property bool dryFail: Env.get("LUXSHELL_DRYRUN_FAIL") === "1"
+
+    function call(argv: var, what: string, done: var): void {
+        if (dry && dryFail) {
+            allow(`${what}: ${argv.join(" ")}`);
+            if (done)
+                done(false, `${what}: Access denied (dry run, LUXSHELL_DRYRUN_FAIL=1)`);
+            return;
+        }
+        runDone(argv, what, done);
+    }
+
+    // callUser(): files under $XDG_CONFIG_HOME (mimeapps.list via xdg-mime, autostart/*.desktop).
+    // A dry run writes them only while XDG_CONFIG_HOME points somewhere other than ~/.config (the
+    // sandbox's copy in the scratchpad); otherwise it only logs, like call().
+    readonly property string home: Env.get("HOME")
+    readonly property string configHome: Env.get("XDG_CONFIG_HOME") !== "" ? Env.get("XDG_CONFIG_HOME") : home + "/.config"
+    readonly property bool userFilesLive: !dry || (Env.get("XDG_CONFIG_HOME") !== "" && configHome.replace(/\/+$/, "") !== home + "/.config")
+
+    function callUser(argv: var, what: string, done: var): void {
+        if (!dry || !userFilesLive) {
+            call(argv, what, done);
+            return;
+        }
+        console.info(`luxshell[dry, files in ${configHome}]: ${what}: ${argv.join(" ")}`);
+        const p = cmdProc.createObject(root, {
+            "done": done ?? null
+        });
+        p.command = argv;
+        p.running = true;
     }
 }

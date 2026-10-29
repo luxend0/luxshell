@@ -61,6 +61,11 @@ import Quickshell
 //   LUXSHELL_IDLE_LOGIND_BUS=session  services/Idle listens for logind (PrepareForSleep, Session.Lock) on the
 //                         session bus instead of the system bus: sandbox with LUXSB_DBUS=1 and a fake
 //                         org.freedesktop.login1 there (the real signals cannot be sent without sleeping / locking)
+//   LUXSHELL_DRYRUN_FAIL=1  with LUXSHELL_DRYRUN=1: every Exec.call (timedatectl, localectl, xdg-mime, ...) answers
+//                         with a refusal instead of success, to see the error display of the settings pages
+//   XDG_CONFIG_HOME       with LUXSHELL_DRYRUN=1 and a path other than ~/.config: Settings > Default Apps and
+//                         Startup Apps really write mimeapps.list and autostart/*.desktop there (Exec.callUser);
+//                         the sandbox points it at a copy in the scratchpad. Otherwise a dry run only logs
 Singleton {
     id: root
 
