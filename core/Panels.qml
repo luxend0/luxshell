@@ -126,6 +126,13 @@ Singleton {
             "menu-caffeine": {
                 "component": menuCaffeine,
                 "kind": "panel"
+            },
+            // polkit authentication prompt (services/Polkit opens it per request); "exclusive":
+            // the island window holds the keyboard exclusively while it is open (IslandWindow)
+            "polkit": {
+                "component": polkitPrompt,
+                "kind": "panel",
+                "exclusive": true
             }
         })
 
@@ -280,5 +287,9 @@ Singleton {
         SheetMenu {
             sheet: "caffeine"
         }
+    }
+    Component {
+        id: polkitPrompt
+        PolkitPrompt {}
     }
 }

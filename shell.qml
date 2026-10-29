@@ -28,6 +28,8 @@ ShellRoot {
     readonly property var system: [HyprSystem.ready]
     // idle daemon (services/Idle): dim, lock, screen off, sleep; lock before sleep; IPC "idle"
     readonly property var idle: [Idle.enabled]
+    // polkit agent (only with LUXSHELL_POLKIT=1) + IPC "polkit", services/Polkit
+    readonly property var polkit: [Polkit.enabled]
 
     Variants {
         model: Quickshell.screens

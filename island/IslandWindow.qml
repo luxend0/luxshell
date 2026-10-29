@@ -26,7 +26,8 @@ PanelWindow {
 
     WlrLayershell.namespace: "luxshell"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.keyboardFocus: island.grabs ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    // registry flag "exclusive" (polkit prompt): the keyboard stays here until the panel closes
+    WlrLayershell.keyboardFocus: !island.grabs ? WlrKeyboardFocus.None : Panels.entries[island.panelId]?.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
     mask: Region {
         item: island.body

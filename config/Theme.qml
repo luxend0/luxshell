@@ -1128,4 +1128,71 @@ Singleton {
         readonly property color plate: root.mix(root.settings.field, root.text, 0.14)
         readonly property color guide: root.mix(root.island, root.accent, 0.6)
     }
+
+    // ---- polkit prompt (panels/PolkitPrompt, services/Polkit) --------------------------------
+    // The island grows into a card in the lock screen's language: who asks (app icon + label),
+    // avatar disc(s), user name, the request text, the password pill with the lock screen's dots,
+    // a note line, then Details / Cancel. Discs, pill and text alphas come from Theme.lock, so
+    // both screens read the same. Heights stack top to bottom; the card follows them live.
+    readonly property QtObject polkit: QtObject {
+        readonly property int width: 520
+        readonly property int radius: Math.round(root.rad(38))   // = cc / sheet menus
+        readonly property int maxHeight: 640                     // taller content (long text) elides
+        readonly property real padTop: 24
+        readonly property real padBottom: 20
+        readonly property real padX: 30
+        // who asks
+        readonly property real headHeight: 24
+        readonly property real headIcon: 20
+        readonly property real headGap: 9
+        readonly property real headSize: root.tx(15)
+        // identities: the selected disc large, the others small + dimmed beside it
+        readonly property real identityTop: 22                    // header -> discs
+        readonly property real avatarSize: 76
+        readonly property real avatarSmall: 44
+        readonly property real avatarGap: 16
+        readonly property real avatarDim: 0.42
+        readonly property real initialScale: 0.4                  // letter height / disc
+        readonly property real nameTop: 12                        // discs -> name line
+        readonly property real nameSize: root.tx(22)
+        readonly property real nameHeight: 30
+        readonly property real switchSize: 18                     // chevrons beside the name (several identities)
+        readonly property real switchGap: 10
+        // request text
+        readonly property real messageTop: 12
+        readonly property real messageSize: root.tx(16)
+        readonly property real messageLine: 1.22
+        readonly property int messageLines: 4
+        readonly property real messageAlpha: 0.62
+        // password pill (the lock screen's, a bit wider) + note
+        readonly property real pillTop: 22
+        readonly property real pillWidth: 320
+        readonly property real pillHeight: 42
+        readonly property real goSize: 30                         // submit disc at the right end
+        readonly property real goInset: 6
+        readonly property real noteTop: 8
+        readonly property real noteHeight: 20
+        readonly property real noteSize: root.tx(14)
+        readonly property real noteAlpha: 0.54
+        readonly property real noteErrorAlpha: 0.86
+        // footer: Details (left), Cancel (right)
+        readonly property real footTop: 14
+        readonly property real buttonHeight: 34
+        readonly property real buttonPadX: 16
+        readonly property real buttonSize: root.tx(15)
+        readonly property real buttonFill: 0.08
+        readonly property real buttonHover: 0.15
+        // details
+        readonly property real detailsTop: 12
+        readonly property real detailsPad: 14
+        readonly property real detailsRow: 24
+        readonly property real detailsLabel: 86                   // label column
+        readonly property real detailsSize: root.tx(13.5)
+        readonly property real detailsFill: 0.05
+        readonly property real detailsRadius: root.rad(16)
+        // motion (Motion.ms applies)
+        readonly property int switchMs: 260                       // discs re-arrange on an identity switch
+        readonly property int detailsMs: 220
+        readonly property int successHold: 420                    // check in the pill before the card closes
+    }
 }
