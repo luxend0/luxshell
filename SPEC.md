@@ -60,3 +60,36 @@ Super+Shift+W Wallpaper-Picker, Super+Shift+Y Theme-Picker. Aufruf per
 - Systemzustand nie aendern (Lautstaerke, WLAN, Bluetooth, Helligkeit) - nur lesen.
 - Hyprland-Dispatch ist Lua: `Hyprland.dispatch('hl.dsp.focus({workspace="3"})')`.
 - CPU schonen: kein Dauer-Polling unter 2 s, nice fuer schwere Befehle.
+
+## Welle "OS + Bar" (Grilling 2026-10-29)
+Reihenfolge: 1) Bar, 2) OS-Seiten + Polkit + Idle, 3) Clipboard, Kalender, Timer, Extra-Seiten.
+Design-Module (Polkit-Prompt, Clipboard, Kalender, Displays-Seite, Timer) je 2 Varianten, luxend
+waehlt per Bild; alles andere je ein Agent. Max 3 Agents gleichzeitig. Commit + Push je Modul.
+
+Bar (neue Widgets nur in der Palette des Layout-Editors, luxends Layout bleibt):
+- Menue-Widgets Bluetooth, Sound (bestehendes Volume), Netzwerk (bestehendes), Display:
+  Klick oeffnet NUR das jeweilige Menue als eigenes Island-Panel, ohne CC, ohne Zurueck-Pfeil.
+- Schalter Mikrofon (rot wenn eine App aufnimmt), Nachtlicht (Scroll = Temperatur),
+  Power-Profil, Caffeine (Restzeit). Rechtsklick: Mic = Sound-Menue (Eingabe),
+  Nachtlicht = Display-Menue, Power-Profil = 3er-Auswahl, Caffeine = 30 min / 1 h / 2 h / bis aus.
+- Info/Tools: GPU-Last/VRAM + CPU/GPU-Temperatur (AMD sysfs), Netzwerk-Speed, Updates
+  (checkupdates + paru -Qua, Klick = Terminal mit `paru -Syu`), Screenshot, Pipette (hyprpicker),
+  Clipboard-Button, Privacy-Punkt (nur waehrend Bildschirmfreigabe/Aufnahme/Mic), Launcher-
+  und Overview-Button. Kalender (Klick auf Uhr/Datum, nur Anzeige), Timer/Pomodoro.
+- Clipboard-Panel (Phase 3): Super+V, cliphist, 500 Eintraege, Bilder, Pinnen, Suche, ohne
+  Passwortmanager-Eintraege (x-kde-passwordManagerHint); Ambxst-Clipboard aus.
+
+Settings: Sidebar in zwei Gruppen "luxshell" (bisherige Seiten) und "System" mit Displays,
+Eingabe, Sound, Netzwerk + Bluetooth, Energie + Idle, Standard-Apps, Datum/Zeit/Sprache,
+Autostart, Ueber dieses System, Benutzerkonto, Speicher, Datenschutz.
+- Hyprland-Werte (Monitor, Eingabe, Autostart) sofort live per hyprctl, dauerhaft in
+  `~/.config/hypr/luxos/luxshell-system.lua` (am Ende von hyprland.lua dofile'd, nur geschrieben
+  wenn etwas geaendert wird). Monitor-Aenderungen: "Behalten?"-Dialog 15 s, sonst Rollback.
+- Displays: Aufloesung, Hz, Scale, VRR, 10-bit/HDR (nur wenn der Monitor es kann), Rotation,
+  an/aus; Drag-Canvas fuer die Anordnung erst ab 2 Monitoren.
+- Eingabe: Sensitivity/Accel global + optional pro Geraet; Key-Repeat bleibt aus.
+- Polkit: luxshell ist der Agent (Quickshell.Services.Polkit), Prompt im Lockscreen-Stil.
+- Idle: eigener Dienst (Wayland idle-notify), Startwerte wie Ambxst (2:30 dimmen, 5:00 sperren,
+  5:30 Bildschirm aus, 30 min Suspend), pausiert bei Medienwiedergabe und Caffeine; Ambxst-Idle
+  aus (Backup).
+- Loeschen/Aufraeumen (Speicher, Datenschutz) nur auf Klick mit Bestaetigung.
