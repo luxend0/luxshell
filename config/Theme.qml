@@ -1057,4 +1057,53 @@ Singleton {
         readonly property color separator: root.mix(root.island, root.text, 0.1)
         readonly property color tile: Qt.rgba(root.text.r, root.text.g, root.text.b, 0.065)
     }
+
+    // ---- Settings > System > Displays (apps/settings/displays, pages/SysDisplays.qml) ------------
+    // The stage on top (the one display drawn large; two or more: the arrangement canvas), then
+    // chips and segment bars instead of dropdowns. Monochrome: plates and outlines in the
+    // settings greys, the selection in the text colour, snap guides in the accent.
+    readonly property QtObject displays: QtObject {
+        readonly property int stageHeight: 262       // one display: drawing + stand
+        readonly property int screenMaxWidth: 400
+        readonly property int screenMaxHeight: 184
+        readonly property int screenTop: 26
+        readonly property int bezel: 7
+        readonly property int screenRadius: Math.round(root.rad(14))
+        readonly property int neckWidth: 46
+        readonly property int neckHeight: 15
+        readonly property int baseWidth: 138
+        readonly property int baseHeight: 6
+        readonly property int canvasHeight: 286      // two or more: the arrangement
+        readonly property int canvasInset: 14        // canvas -> card edge
+        readonly property int canvasPad: 30          // monitors -> canvas edge (fit)
+        readonly property real canvasRoom: 0.78      // the arrangement fills at most this much: room to drag
+        readonly property int canvasRadius: Math.round(root.rad(14))
+        readonly property int monitorRadius: Math.round(root.rad(9))
+        readonly property real snap: 14              // px on the canvas: edges closer than this snap
+        readonly property int footerHeight: 58       // under the canvas: selected display, main, off
+        readonly property int nameSize: 20
+        readonly property int subSize: 14
+        readonly property int chipHeight: 56         // resolution chips
+        readonly property int chipGap: 8
+        readonly property int chipColumns: 4
+        readonly property int chipRadius: Math.round(root.rad(12))
+        readonly property int segHeight: 36          // segment bars (refresh rate, VRR, colour, mirror)
+        readonly property int segRadius: Math.round(root.rad(11))
+        readonly property int segPad: 16
+        readonly property int tickTrack: 6           // scale: stepped slider
+        readonly property int tickHeight: 12
+        readonly property int tickLabelGap: 46       // min px between two tick labels
+        readonly property int rotationTile: 78       // four small monitors
+        readonly property int rotationGap: 10
+        readonly property color canvas: root.settings.window
+        readonly property color screen: root.mix(root.settings.card, root.surfaceHigh, 0.42)
+        readonly property color screenHigh: root.mix(root.settings.card, root.surfaceHigh, 0.7)
+        readonly property color bezelColor: root.mix(root.island, root.surfaceHigh, 0.5)
+        readonly property color outline: root.mix(root.island, root.surfaceHigh, 1.0)
+        readonly property color monitor: root.mix(root.island, root.surfaceHigh, 0.75)
+        readonly property color monitorHover: root.mix(root.island, root.surfaceHigh, 0.95)
+        readonly property color monitorSelected: root.mix(root.surfaceHigh, root.text, 0.1)
+        readonly property color plate: root.mix(root.settings.field, root.text, 0.14)
+        readonly property color guide: root.mix(root.island, root.accent, 0.6)
+    }
 }

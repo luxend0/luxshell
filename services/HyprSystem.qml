@@ -68,7 +68,11 @@ Singleton {
             "input.kb_options": "",
             "input.numlock_by_default": false,
             "input.touchpad.natural_scroll": false,
-            "input.touchpad.scroll_factor": 1
+            "input.touchpad.scroll_factor": 1,
+            // Settings > Displays: main display (the cursor starts there), global VRR (read only:
+            // what a monitor without its own vrr follows)
+            "cursor.default_monitor": "",
+            "misc.vrr": 0
         })
     readonly property var blocked: ["input.repeat_rate", "input.repeat_delay"]
     // per-device fields and the global path a device follows while it has no own value

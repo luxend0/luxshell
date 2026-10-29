@@ -49,6 +49,9 @@ import Quickshell
 //                         instead of running checkupdates / paru (services/Updates)
 //   LUXSHELL_FAKE_PRIVACY  "mic:Discord:discord,screen:OBS Studio:com.obsproject.Studio" (kind:app:icon)
 //                         replaces the live privacy list (services/Privacy; also ipc call privacy fake)
+//   LUXSHELL_FAKE_MONITORS  file with a `hyprctl monitors all -j` dump: Settings > Displays shows these
+//                         displays instead of the live ones (sandbox shots of a real monitor); changes
+//                         still go to the compositor qs runs in (apps/settings/pages/SysDisplays.qml)
 Singleton {
     id: root
 
