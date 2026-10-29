@@ -7,6 +7,7 @@
 //   vclick <wayland-display> drag DX DY [HOLD_MS]   same in 2D; HOLD_MS keeps the button down at
 //                                           the end (screenshots of a drag in progress)
 //   vclick <wayland-display> middle         middle-button click
+//   vclick <wayland-display> right          right-button click
 //   vclick <wayland-display> wheel N        N wheel notches down (negative: up), no button
 //   vclick <wayland-display> wiggle         only the 1 px motion: delivers enter/leave after a
 //                                           hyprctl cursor warp (which sends no motion itself)
@@ -51,7 +52,7 @@ int main(int argc, char **argv) {
         zwlr_virtual_pointer_v1_destroy(p); wl_display_roundtrip(dpy); wl_display_disconnect(dpy); return 0;
     }
     if (!strcmp(argv[2], "wiggle")) { zwlr_virtual_pointer_v1_destroy(p); wl_display_roundtrip(dpy); wl_display_disconnect(dpy); return 0; }
-    const uint32_t btn = !strcmp(argv[2], "middle") ? 0x112 : 0x110;
+    const uint32_t btn = !strcmp(argv[2], "middle") ? 0x112 : !strcmp(argv[2], "right") ? 0x111 : 0x110;
     zwlr_virtual_pointer_v1_button(p, t++, btn, 1); zwlr_virtual_pointer_v1_frame(p);
     wl_display_roundtrip(dpy); usleep(60000);
     if (!strcmp(argv[2], "drag") && argc > 3) {

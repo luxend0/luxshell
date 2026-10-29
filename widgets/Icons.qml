@@ -42,7 +42,10 @@ Singleton {
             "message-square": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
             "x": '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
             "chevron-up": '<path d="m18 15-6-6-6 6"/>',
-            "chevron-down": '<path d="m6 9 6 6 6-6"/>'
+            "chevron-down": '<path d="m6 9 6 6 6-6"/>',
+            // tray menu (Lucide 0.468)
+            "check": '<path d="M20 6 9 17l-5-5"/>',
+            "chevron-left": '<path d="m15 18-6-6 6-6"/>'
         })
 
     function hex(c: color): string {
