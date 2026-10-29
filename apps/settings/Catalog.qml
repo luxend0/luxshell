@@ -34,7 +34,8 @@ Singleton {
         Demo {},
         // ---- group "system" (the OS; Hyprland values via services/HyprSystem) ----
         SysDisplays {},
-        SysInput {}
+        SysInput {},
+        SysIdle {}
     ]
 
     // Sidebar groups, top to bottom; a page names its group (SettingsPage.group, default

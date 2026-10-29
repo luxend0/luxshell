@@ -26,6 +26,8 @@ ShellRoot {
     readonly property var behaviour: [Keybinds.enabled, Focus.enabled]
     // Hyprland values of Settings > System (services/HyprSystem): read at start, put back what Hyprland lacks, IPC "system"
     readonly property var system: [HyprSystem.ready]
+    // idle daemon (services/Idle): dim, lock, screen off, sleep; lock before sleep; IPC "idle"
+    readonly property var idle: [Idle.enabled]
 
     Variants {
         model: Quickshell.screens
