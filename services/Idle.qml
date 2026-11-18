@@ -151,8 +151,10 @@ Singleton {
     Timer {
         id: suspendDelay
         interval: 1200
+        // ponytail: a logind sleep *block* inhibitor (long renders: systemd-inhibit --what=sleep) skips the suspend
+        // (2026-11-09: idle sleep suspended the PC mid-render; a plain systemctl suspend from here went through anyway)
         onTriggered: if (suspendMon.isIdle)
-            Exec.run(["systemctl", "suspend"], "idle sleep")
+            Exec.run(["sh", "-c", "busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager BlockInhibited | grep -q sleep || systemctl suspend"], "idle sleep")
     }
 
     // ---- dim: brightness read fresh, set to idleDimLevel, the read values come back on input
