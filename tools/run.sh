@@ -17,4 +17,11 @@ if [[ -n ${LUXSHELL_SHELL_PATH:-} ]]; then
     unset LUXSHELL_SHELL_PATH
     exec qs -p "$path" "$@"
 fi
-exec qs -c luxshell "$@"
+# ponytail: nach einem Absturz (Tod durch Signal, z. B. SEGV beim Login am 2026-11-18) neu starten,
+# hoechstens 3x; sauberes Ende, qs kill, SIGINT/SIGKILL/SIGTERM beenden die Schleife.
+for _ in 1 2 3 4; do
+    qs -c luxshell "$@"; rc=$?
+    (( rc > 128 && rc != 130 && rc != 137 && rc != 143 )) || exit "$rc"
+    sleep 1
+done
+exit "$rc"
